@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="es-MX">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>aro3d · Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --amber:#FCB92C; --amber-d:#E0A111; --navy:#182132; --navy-2:#24304a; --teal:#5FA89B; --teal-l:#8FB4AC;
+  --bg:#F5F7F9; --surface:#FFFFFF; --surface-2:#EEF2F5; --line:#E2E8ee;
+  --txt:#1F2933; --txt-2:#5B6675; --txt-3:#8A93A0;
+  --ok:#2E8B4F; --warn:#C8901A; --danger:#C0392B; --info:#2E6CB8;
+  --bronce:#B07B4F; --plata:#8A93A0; --oro:#D4A017; --platino:#3FA9B5;
+  --r:16px; --r-lg:22px; --r-sm:10px;
+  --sh:0 2px 8px rgba(20,30,50,.07); --sh-2:0 8px 24px rgba(20,30,50,.12); --sh-3:0 16px 40px rgba(20,30,50,.18);
+  --rail-w:248px; --t:200ms cubic-bezier(.2,.8,.2,1);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{font-family:Nunito,system-ui,sans-serif;background:var(--bg);color:var(--txt);line-height:1.5;font-size:16px}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,select,textarea{font-family:inherit;font-size:16px}
+::selection{background:var(--amber);color:var(--navy)}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+.shell{display:flex;min-height:100dvh}
+.rail{display:none;flex:0 0 var(--rail-w);background:var(--navy);color:#fff;flex-direction:column;position:sticky;top:0;height:100dvh;padding:18px 14px;gap:4px}
+.rail .brand{display:flex;align-items:center;gap:10px;padding:10px 12px 18px}
+.rail .brand b{font-size:22px;font-weight:900;letter-spacing:.5px}
+.rail .brand .dot,.auth .logo .dot,.appbar .ab-brand .dot{background:linear-gradient(135deg,var(--amber),var(--amber-d));display:grid;place-items:center;color:var(--navy);font-weight:900}
+.rail .brand .dot{width:30px;height:30px;border-radius:9px}
+.rail .navitem{display:flex;align-items:center;gap:13px;padding:12px 14px;border-radius:12px;color:#C3CCDb;font-weight:700;font-size:15px;transition:background var(--t),color var(--t);text-align:left;width:100%}
+.rail .navitem:hover{background:rgba(255,255,255,.06);color:#fff}
+.rail .navitem.active{background:rgba(252,185,44,.16);color:var(--amber)}
+.rail .navitem svg{width:22px;height:22px;flex:0 0 22px}
+.rail .spacer{flex:1}
+.rail .role-pill{margin:6px 12px;font-size:12px;color:#8290a8;text-transform:uppercase;letter-spacing:1px;font-weight:800}
+.main{flex:1;display:flex;flex-direction:column;min-width:0}
+.appbar{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:12px;height:60px;padding:0 16px;background:var(--surface);border-bottom:1px solid var(--line)}
+.appbar .title{font-weight:800;font-size:19px}
+.appbar .ab-brand{display:none;align-items:center;gap:8px;font-weight:900;font-size:18px}
+.appbar .ab-brand .dot{width:26px;height:26px;border-radius:8px;font-size:14px}
+.appbar .grow{flex:1}
+.iconbtn{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;color:var(--txt-2);transition:background var(--t),transform var(--t)}
+.iconbtn:hover{background:var(--surface-2)} .iconbtn:active{transform:scale(.92)}
+.iconbtn svg{width:22px;height:22px} .iconbtn.sm{width:36px;height:36px}.iconbtn.sm svg{width:18px;height:18px}
+.content{flex:1;padding:18px 16px 100px;max-width:1120px;width:100%;margin:0 auto}
+.page-h{font-size:24px;font-weight:900;margin:4px 0 14px}
+.page-sub{color:var(--txt-2);margin:-8px 0 16px;font-size:14px}
+.bottomnav{position:fixed;left:0;right:0;bottom:0;z-index:40;display:flex;background:var(--surface);border-top:1px solid var(--line);padding:6px 4px env(safe-area-inset-bottom);box-shadow:0 -2px 12px rgba(20,30,50,.06)}
+.bottomnav .navitem{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 2px;border-radius:12px;color:var(--txt-3);font-size:11px;font-weight:700;min-height:48px;transition:color var(--t)}
+.bottomnav .navitem svg{width:24px;height:24px}
+.bottomnav .navitem .pip{height:3px;width:0;border-radius:3px;background:var(--amber);transition:width var(--t)}
+.bottomnav .navitem.active{color:var(--navy)} .bottomnav .navitem.active .pip{width:22px}
+.bottomnav .navitem:active{transform:scale(.94)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;box-shadow:var(--sh)}
+.grid{display:grid;gap:14px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:46px;padding:0 20px;border-radius:13px;font-weight:800;font-size:15px;transition:transform var(--t),box-shadow var(--t),background var(--t);min-width:44px}
+.btn:active{transform:scale(.96)}
+.btn.filled{background:var(--amber);color:var(--navy);box-shadow:0 4px 12px rgba(252,185,44,.35)} .btn.filled:hover{background:var(--amber-d)}
+.btn.navy{background:var(--navy);color:#fff}.btn.navy:hover{background:var(--navy-2)}
+.btn.tonal{background:var(--surface-2);color:var(--navy)}.btn.tonal:hover{background:#e3e9ee}
+.btn.danger{background:var(--danger);color:#fff}.btn.danger:hover{filter:brightness(.92)}
+.btn.text{height:42px;padding:0 12px;color:var(--info);background:none}.btn.text:hover{background:rgba(46,108,184,.08)}
+.btn.block{display:flex;width:100%} .btn.sm{height:38px;padding:0 14px;font-size:13px;border-radius:11px}
+.btn svg{width:19px;height:19px} .btn[disabled]{opacity:.4;pointer-events:none}
+.fab{position:fixed;right:18px;bottom:84px;z-index:35;height:56px;padding:0 22px;border-radius:18px;background:var(--amber);color:var(--navy);font-weight:800;display:inline-flex;align-items:center;gap:9px;box-shadow:var(--sh-2);transition:transform var(--t),box-shadow var(--t)}
+.fab:hover{box-shadow:var(--sh-3)} .fab:active{transform:scale(.95)} .fab svg{width:22px;height:22px}
+.chip{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 12px;border-radius:20px;font-size:12.5px;font-weight:800;background:var(--surface-2);color:var(--txt-2)}
+.chip.ok{background:#e4f3ea;color:var(--ok)} .chip.info{background:#e4ecf7;color:var(--info)}
+.chip.warn{background:#fbf0d8;color:var(--warn)} .chip.dang{background:#f8e4e2;color:var(--danger)} .chip.teal{background:#e3f0ed;color:#2f7d70}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.field label{font-weight:800;font-size:13.5px;color:var(--txt-2)} .field label .req{color:var(--danger)}
+.field input,.field select,.field textarea{width:100%;height:48px;padding:0 14px;border:1.5px solid var(--line);border-radius:12px;background:var(--surface);color:var(--txt);transition:border-color var(--t),box-shadow var(--t)}
+.field textarea{height:auto;padding:12px 14px;min-height:84px;resize:vertical}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--amber);box-shadow:0 0 0 4px rgba(252,185,44,.2)}
+.field .hint{font-size:12px;color:var(--txt-3)} .field.err input,.field.err textarea{border-color:var(--danger)}
+.avatar{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-weight:900;color:#fff;background:var(--teal);flex:0 0 auto}
+.row{display:flex;align-items:center;gap:12px} .between{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.muted{color:var(--txt-2)} .small{font-size:13px} .xsmall{font-size:11.5px}
+.list-item{display:flex;align-items:center;gap:13px;padding:13px 6px;border-bottom:1px solid var(--line)} .list-item:last-child{border-bottom:none}
+.badge-tier{display:inline-flex;align-items:center;gap:6px;padding:4px 11px;border-radius:20px;font-weight:900;font-size:12px;color:#fff}
+.search{display:flex;align-items:center;gap:9px;height:46px;padding:0 14px;background:var(--surface);border:1.5px solid var(--line);border-radius:14px;margin-bottom:14px}
+.search input{border:none;height:auto;flex:1;background:none;padding:0} .search input:focus{outline:none} .search svg{width:20px;height:20px;color:var(--txt-3)}
+.doc-hero{position:relative;overflow:hidden;border-radius:var(--r-lg);padding:22px;color:#fff;background:linear-gradient(135deg,var(--navy) 0%,#1f4a52 60%,var(--teal) 130%);box-shadow:var(--sh-2)}
+.doc-hero::after{content:"";position:absolute;right:-40px;top:-40px;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,.06)}
+.doc-hero .pts{font-size:46px;font-weight:900;line-height:1;letter-spacing:-1px}
+.ring-wrap{position:relative;width:96px;height:96px;flex:0 0 96px} .ring-wrap svg{transform:rotate(-90deg)} .ring-wrap .rc{fill:none;stroke-width:10;stroke-linecap:round}
+.ring-wrap .center{position:absolute;inset:0;display:grid;place-items:center;text-align:center;line-height:1.05}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px;box-shadow:var(--sh)} .kpi .v{font-size:24px;font-weight:900} .kpi .l{font-size:12px;color:var(--txt-2);font-weight:700}
+.code-card{display:flex;align-items:center;justify-content:space-between;gap:12px;background:rgba(255,255,255,.12);border:1px dashed rgba(255,255,255,.4);border-radius:14px;padding:12px 14px;margin-top:14px}
+.code-card .code{font-size:21px;font-weight:900;letter-spacing:1px}
+.timeline .ti{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)} .timeline .ti:last-child{border:none}
+.timeline .tdot{width:34px;height:34px;border-radius:10px;background:var(--surface-2);display:grid;place-items:center;color:var(--teal);flex:0 0 34px} .timeline .tdot svg{width:18px;height:18px}
+.plus-badge{font-weight:900;color:var(--ok)}
+.icon-box{width:40px;height:40px;border-radius:11px;background:var(--surface-2);display:grid;place-items:center;color:var(--teal);flex:0 0 40px}
+.cd{display:inline-flex;align-items:center;gap:7px;background:#fff;border:1.5px solid var(--amber);color:var(--navy);border-radius:12px;padding:9px 13px;font-weight:800;font-size:13px} .cd svg{width:17px;height:17px;color:var(--amber-d)}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.cal .dow{text-align:center;font-size:11px;font-weight:800;color:var(--txt-3);padding:4px 0}
+.cal .day{aspect-ratio:1;border-radius:11px;background:var(--surface-2);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;position:relative;transition:background var(--t),transform var(--t)}
+.cal .day:hover{background:#e3e9ee} .cal .day:active{transform:scale(.93)}
+.cal .day.has{box-shadow:inset 0 0 0 1.5px var(--amber)} .cal .day.today{color:var(--amber-d)}
+.cal .day.sel{background:var(--navy);color:#fff} .cal .day .n{position:absolute;bottom:6px;height:5px;width:5px;border-radius:50%;background:var(--amber)}
+.seg{display:inline-flex;background:var(--surface-2);border-radius:12px;padding:4px;gap:3px} .seg button{padding:7px 16px;border-radius:9px;font-weight:800;font-size:13px;color:var(--txt-2);transition:all var(--t)} .seg button.on{background:var(--surface);color:var(--navy);box-shadow:var(--sh)}
+.seg.full{display:flex} .seg.full button{flex:1}
+#snk{position:fixed;left:50%;bottom:96px;transform:translate(-50%,160%);opacity:0;pointer-events:none;z-index:90;background:var(--navy);color:#fff;padding:13px 18px;border-radius:13px;font-weight:700;font-size:14px;box-shadow:var(--sh-2);display:flex;align-items:center;gap:10px;max-width:90vw;transition:transform .35s cubic-bezier(.2,.9,.2,1),opacity .25s}
+#snk.show{transform:translate(-50%,0);opacity:1} #snk svg{width:20px;height:20px;color:var(--amber)}
+@media(min-width:1024px){#snk{bottom:26px}}
+.scrim{position:fixed;inset:0;z-index:60;background:rgba(15,20,32,.5);opacity:0;pointer-events:none;transition:opacity var(--t)} .scrim.show{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:70;background:var(--surface);border-radius:24px 24px 0 0;padding:18px 18px calc(18px + env(safe-area-inset-bottom));max-height:90dvh;overflow:auto;transform:translateY(102%);visibility:hidden;opacity:0;transition:transform .38s cubic-bezier(.2,.9,.2,1),opacity .25s,visibility .38s;box-shadow:var(--sh-3)}
+.sheet.show{transform:translateY(0);visibility:visible;opacity:1} .sheet .handle{width:42px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 14px} .sheet h3{margin:0 0 14px;font-size:20px;font-weight:900}
+@media(min-width:760px){.sheet{left:50%;right:auto;width:520px;bottom:auto;top:50%;border-radius:24px;transform:translate(-50%,-46%)} .sheet.show{transform:translate(-50%,-50%)}}
+.auth{min-height:100dvh;display:flex;padding:24px;overflow-y:auto;background:radial-gradient(1200px 500px at 50% -10%,#22304a 0%,var(--navy) 55%)}
+.auth-card{width:100%;max-width:430px;margin:auto;background:var(--surface);border-radius:24px;padding:26px;box-shadow:var(--sh-3);animation:pop .4s var(--t) both}
+.auth .logo{display:flex;align-items:center;justify-content:center;gap:11px;margin-bottom:6px} .auth .logo .dot{width:46px;height:46px;border-radius:14px;font-size:22px} .auth .logo b{font-size:30px;font-weight:900;color:var(--navy)}
+.role-pick{display:grid;gap:11px;margin-top:16px}
+.role-opt{display:flex;align-items:center;gap:14px;padding:15px;border:1.5px solid var(--line);border-radius:16px;text-align:left;transition:border-color var(--t),transform var(--t),background var(--t);width:100%}
+.role-opt:hover{border-color:var(--amber);background:#fffaf0} .role-opt:active{transform:scale(.98)}
+.role-opt .ic{width:46px;height:46px;border-radius:13px;display:grid;place-items:center;color:#fff;flex:0 0 46px} .role-opt b{display:block;font-size:16px} .role-opt span{font-size:13px;color:var(--txt-2)}
+.social{display:grid;gap:10px;margin-top:14px}
+.social-btn{height:50px;border:1.5px solid var(--line);border-radius:13px;display:flex;align-items:center;justify-content:center;gap:11px;font-weight:800;font-size:15px;background:#fff;transition:background var(--t),transform var(--t)} .social-btn:active{transform:scale(.98)}
+.social-btn.apple{background:#000;color:#fff;border-color:#000} .social-btn:hover{filter:brightness(.97)}
+.social-btn svg{width:20px;height:20px}
+.sep{display:flex;align-items:center;gap:12px;margin:16px 0;color:var(--txt-3);font-size:12px;font-weight:700} .sep::before,.sep::after{content:"";height:1px;background:var(--line);flex:1}
+.tc{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--txt-2);font-weight:600;margin:4px 0 14px;cursor:pointer} .tc input{width:20px;height:20px;flex:0 0 20px;margin-top:1px} .tc a{color:var(--info);font-weight:800}
+#conf{position:fixed;inset:0;z-index:95;pointer-events:none;overflow:hidden} .cf{position:absolute;width:9px;height:14px;border-radius:2px;animation:fall 1.3s ease-in forwards}
+@keyframes pop{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:none}}
+@keyframes fall{to{transform:translateY(110vh) rotate(540deg);opacity:0}}
+.screen{animation:scin .32s cubic-bezier(.2,.8,.2,1) both} @keyframes scin{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.stg>*{animation:stg .4s var(--t) both}
+.stg>*:nth-child(1){animation-delay:.02s}.stg>*:nth-child(2){animation-delay:.06s}.stg>*:nth-child(3){animation-delay:.1s}.stg>*:nth-child(4){animation-delay:.14s}.stg>*:nth-child(5){animation-delay:.18s}.stg>*:nth-child(6){animation-delay:.22s}.stg>*:nth-child(7){animation-delay:.26s}.stg>*:nth-child(8){animation-delay:.3s}
+@keyframes stg{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@media(min-width:1024px){.rail{display:flex}.bottomnav{display:none}.fab{bottom:26px}.content{padding:24px 30px 40px}.cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:repeat(3,1fr)}.doc-grid{grid-template-columns:1.25fr 1fr}}
+@media(max-width:1023px){.appbar .ab-brand{display:flex}.appbar .title{display:none}.cols-2,.cols-3,.doc-grid{grid-template-columns:1fr}}
+@media(min-width:600px) and (max-width:1023px){.cols-3{grid-template-columns:1fr 1fr}}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.001ms!important;transition-duration:.001ms!important}}
+/* receta catalog */
+.cat-box{border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-bottom:12px}
+.cat-h{background:var(--surface-2);padding:10px 14px;font-weight:800;font-size:12.5px;color:var(--navy);text-transform:uppercase;letter-spacing:.5px}
+.serv-row{padding:11px 14px;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.serv-main{flex:1;min-width:55%;display:flex;gap:10px;align-items:flex-start;font-size:13.5px;font-weight:700;cursor:pointer;color:var(--txt)}
+.serv-main input{width:20px;height:20px;flex:0 0 20px;margin-top:1px}
+.serv-price{font-weight:800;color:var(--teal);font-size:13px;white-space:nowrap}
+.serv-opts{flex-basis:100%;display:flex;flex-wrap:wrap;gap:9px 16px;padding-left:30px;align-items:center}
+.opc{display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:var(--txt-2);cursor:pointer}
+.opc input{width:16px;height:16px}
+.serv-otro{height:32px;width:150px;font-size:12px;border:1px solid var(--line);border-radius:8px;padding:0 8px;background:#fff}
+.total-bar{position:sticky;bottom:0;display:flex;align-items:center;justify-content:space-between;background:var(--navy);color:#fff;border-radius:14px;padding:13px 18px;margin-top:6px;font-weight:800}
+.total-bar b{font-size:22px}
+.deliv{display:flex;gap:10px;flex-wrap:wrap}
+.deliv label{flex:1;min-width:150px;border:1.5px solid var(--line);border-radius:12px;padding:11px;display:flex;gap:9px;align-items:center;font-size:13px;font-weight:700;cursor:pointer}
+.deliv input{width:18px;height:18px}
+/* study viewer */
+.viewer-canvas{position:relative;background:radial-gradient(circle at 50% 40%,#1a2433,#06080c);border-radius:14px;overflow:hidden;aspect-ratio:2/1}
+.viewer-canvas svg{width:100%;height:100%;display:block;transition:filter .15s}
+.scanbar{position:absolute;left:0;right:0;top:-30%;height:30%;background:linear-gradient(180deg,rgba(95,168,155,.35),transparent);box-shadow:0 0 24px rgba(95,168,155,.6);animation:scan 1.6s ease-in-out 1;pointer-events:none}
+@keyframes scan{0%{top:-30%}100%{top:100%}}
+.vload{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#bcd;background:rgba(6,8,12,.82);font-weight:700;gap:10px;transition:opacity .4s;font-size:13px}
+.vbar{width:62%;height:6px;border-radius:6px;background:rgba(255,255,255,.15);overflow:hidden}
+.vbar i{display:block;height:100%;width:0;background:var(--teal);border-radius:6px;transition:width .12s}
+.vctrl{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:12px;font-weight:700;color:var(--txt-2)}
+.vctrl input[type=range]{flex:1;accent-color:var(--teal)}
+.dlrow{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}
+/* portal */
+.portal{min-height:100dvh;background:linear-gradient(180deg,#5FA89B 0,#3f8478 220px,var(--bg) 220px)}
+.portal-head{padding:22px 18px;color:#fff;display:flex;align-items:center;gap:12px}
+.portal-head .dot{width:42px;height:42px;border-radius:13px;background:rgba(255,255,255,.18);display:grid;place-items:center;font-weight:900;font-size:20px}
+.portal-wrap{max-width:760px;margin:0 auto;padding:0 16px 60px}
+</style>
+</head>
+<body>
+<h2 class="sr-only">Demo interactiva de aro3d con roles Admin, Doctor y Paciente, calendario, CRUD y sistema de puntos.</h2>
+<div id="app"></div>
+<div id="snk"></div><div id="conf"></div>
+<div class="scrim" id="scrim"></div><div class="sheet" id="sheet"></div>
+<script>
+"use strict";
+const $=s=>document.querySelector(s);
+const ce=(t,c,h)=>{const e=document.createElement(t);if(c)e.className=c;if(h!=null)e.innerHTML=h;return e;};
+const money=n=>'$'+Number(n||0).toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2});
+const initials=n=>(n||'?').split(' ').filter(Boolean).slice(0,2).map(x=>x[0]).join('').toUpperCase();
+const esc=s=>(''+s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const edad=f=>f?(new Date().getFullYear()-+f.slice(0,4)):'';
+const I={
+ cal:'<path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z"/>',
+ list:'<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',
+ users:'<path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8zM22 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>',
+ user:'<path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2M12 11a4 4 0 100-8 4 4 0 000 8z"/>',
+ file:'<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/>',
+ home:'<path d="M3 9.5L12 3l9 6.5V20a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><path d="M9 22V12h6v10"/>',
+ award:'<circle cx="12" cy="8" r="6"/><path d="M15.5 13.5L17 22l-5-3-5 3 1.5-8.5"/>',
+ gift:'<path d="M20 12v9H4v-9M2 7h20v5H2zM12 22V7M12 7S10.5 2 7.5 2 5 4.5 5 4.5 6 7 12 7zM12 7s1.5-5 4.5-5S19 4.5 19 4.5 18 7 12 7z"/>',
+ plus:'<path d="M12 5v14M5 12h14"/>', copy:'<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>',
+ share:'<path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/>',
+ search:'<circle cx="11" cy="11" r="8"/><path d="M21 21l-4.3-4.3"/>', logout:'<path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>',
+ check:'<path d="M20 6L9 17l-5-5"/>', clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+ stetho:'<path d="M4 3v5a4 4 0 008 0V3M6 3H2M10 3H14M8 12v3a6 6 0 0012 0v-1"/><circle cx="20" cy="13" r="2"/>',
+ tooth:'<path d="M12 5.5C9 2.5 4 3 4 8c0 4 1.5 5 2 9 .4 3 3 4 3-1 0-3 1-4 3-4s3 1 3 4c0 5 2.6 4 3 1 .5-4 2-5 2-9 0-5-5-5.5-8-2.5z"/>',
+ eye:'<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/>',
+ ticket:'<path d="M3 9a2 2 0 002-2V5h14v2a2 2 0 000 4v2a2 2 0 000 4v2H5v-2a2 2 0 00-2-2z"/>',
+ spark:'<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/>', refresh:'<path d="M21 12a9 9 0 11-3-6.7L21 8M21 3v5h-5"/>',
+ chevR:'<path d="M9 6l6 6-6 6"/>', close:'<path d="M18 6L6 18M6 6l12 12"/>', edit:'<path d="M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/>',
+ trash:'<path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6"/>',
+ mail:'<rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 7l-10 6L2 7"/>', bell:'<path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 01-3.4 0"/>',
+ calplus:'<path d="M8 2v4M16 2v4M3 10h18M21 14V6a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2h7M16 19h6M19 16v6"/>',
+ download:'<path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/>',
+ expand:'<path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>',
+ scan:'<path d="M3 7V5a2 2 0 012-2h2M17 3h2a2 2 0 012 2v2M21 17v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2M3 12h18"/>',
+ ext:'<path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3"/>',
+ lock:'<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>',
+ apple:'<path d="M16 1.4c.1 1.2-.4 2.3-1.1 3.1-.8.9-2 1.5-3.1 1.4-.1-1.1.4-2.3 1.1-3 .8-.9 2.1-1.5 3.1-1.5zM19.5 17c-.5 1.2-.8 1.7-1.5 2.8-1 1.5-2.3 3.3-4 3.3-1.5 0-1.9-1-3.9-1s-2.5 1-3.9 1c-1.7 0-3-1.7-4-3.1C1.8 19.4 1 15.6 2.6 13c.8-1.3 2.2-2.1 3.7-2.1s2.5 1 3.8 1c1.2 0 2-1 3.8-1 1.3 0 2.7.7 3.6 2-3.2 1.7-2.6 6.2-1.8 8.1z"/>'
+};
+const svg=(n,w)=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ${w?`width="${w}" height="${w}"`:''}>${I[n]||''}</svg>`;
+const gIcon='<svg viewBox="0 0 24 24" width="20" height="20"><path fill="#4285F4" d="M22 12.2c0-.7-.1-1.4-.2-2H12v3.8h5.6a4.8 4.8 0 01-2.1 3.2v2.6h3.4c2-1.8 3.1-4.5 3.1-7.6z"/><path fill="#34A853" d="M12 23c2.8 0 5.2-.9 6.9-2.5l-3.4-2.6c-.9.6-2.1 1-3.5 1-2.7 0-5-1.8-5.8-4.3H2.7v2.7A10.4 10.4 0 0012 23z"/><path fill="#FBBC05" d="M6.2 14.6a6.2 6.2 0 010-4V8H2.7a10.4 10.4 0 000 9.3z"/><path fill="#EA4335" d="M12 5.4c1.5 0 2.9.5 4 1.5l3-3A10 10 0 0012 1 10.4 10.4 0 002.7 8l3.5 2.7C7 7.2 9.3 5.4 12 5.4z"/></svg>';
+const appleIcon='<svg viewBox="0 0 24 24" width="20" height="20" fill="#fff">'+I.apple+'</svg>';
+
+const ESTUDIOS=["Ortopantomografía (Panorámica)","Lateral de Cráneo con Cefalometría","Cefalometría Ricketts","Cefalometría Steiner","Cefalometría Jarabak","Cefalometría Alexander","Fotografías Clínicas","Escaneo Intraoral","Tomografía Cone Beam","Impresión 3D"];
+const PAQUETES=["PAQ 1 · Digital","PAQ 2 · ARO Plus","PAQ 3 · ARO 3D","PAQ 4 · ARO 3D Plus","PAQ 5 · ARO-ATM","PAQ 6 · ARO Platinum"];
+const HORAS=['09:00','09:30','10:00','10:30','11:00','11:30','12:00','12:30','16:00','16:30','17:00','17:30','18:00','18:30'];
+const CEPH=['Ricketts','Steiner','Jarabak','Alexander'];
+const CATALOGO=[
+ {cat:'Estudio Ortodóntico ARO',items:[
+   {id:65,n:'PAQ 1: Digital',c:1050,ceph:true},
+   {id:66,n:'PAQ 2: ARO Plus (modelos impresos)',c:1250,ceph:true},
+   {id:67,n:'PAQ 3: ARO 3D (Cone Beam Maxilar y Mandíbula)',c:2500,ceph:true},
+   {id:69,n:'PAQ 4: ARO 3D Plus (Cone Beam + Modelos)',c:2850,ceph:true},
+   {id:70,n:'PAQ 5: ARO-ATM (ATM Bilateral + Modelos)',c:3000,ceph:true},
+   {id:71,n:'PAQ 6: ARO Platinum (Korkhaus + análisis)',c:1300,ceph:true}]},
+ {cat:'Tomografía Cone-Beam 3D',items:[
+   {id:29,n:'FOV 5x5 · 3er Molar',c:850,opc:['Boca Abierta','Boca Cerrada','Visor','Dicom']},
+   {id:30,n:'FOV 5x5 · Endodóntica',c:850,opc:['Boca Abierta','Boca Cerrada','Visor','Dicom']},
+   {id:32,n:'FOV 5x8 · Tomografía Maxilar',c:1000,opc:['Visor','Dicom']},
+   {id:37,n:'FOV 5x8 · Tomografía Mandibular',c:1000,opc:['Visor','Dicom']},
+   {id:73,n:'FOV 8x8 · Completa (Maxilar y Mandíbula)',c:1600,opc:['Visor','Dicom']},
+   {id:74,n:'FOV 8x8 · ATM Bilateral',c:1200,opc:['Visor','Dicom']}]},
+ {cat:'Radiografías 2D',items:[
+   {id:7,n:'Ortopantomografía (Panorámica)',c:200},
+   {id:8,n:'Telerradiografía (Lateral de cráneo)',c:200,ceph:true},
+   {id:9,n:'Posteroanterior (P.A.) de cráneo',c:200},
+   {id:12,n:'Serie periapical',c:600}]},
+ {cat:'Modelos Digitales y Fotografías',items:[
+   {id:18,n:'Escaneo Modelo de Estudio 3D',c:300},
+   {id:19,n:'Escaneo Intraoral Dentado 3D',c:450},
+   {id:16,n:'Paquete Fotografías Clínicas (Intra/Extra)',c:300},
+   {id:88,n:'Modelos Impresos (Impresora 3D)',c:350}]}
+];
+const TIERS=[{n:"Bronce",min:0,c:"var(--bronce)"},{n:"Plata",min:500,c:"var(--plata)"},{n:"Oro",min:1500,c:"var(--oro)"},{n:"Platino",min:4000,c:"var(--platino)"}];
+const tierOf=p=>{let t=TIERS[0];for(const x of TIERS)if(p>=x.min)t=x;return t;};
+const nextTier=p=>{for(const x of TIERS)if(p<x.min)return x;return null;};
+const estaChip={"Por Confirmar":"warn","Con Cita":"info","Completo":"ok","Cancelado":"dang"};
+
+const KEY='aro3d_demo_v2';
+function seed(){
+ const day=o=>{const d=new Date();d.setDate(d.getDate()+o);return d.toISOString().slice(0,10);};
+ const D=[{id:'d1',nombre:'Dra. Mariana Rosete',email:'mariana@denta.mx',tel:'777 254 3072',codigo:'ARO-DR-4821',puntos:2480,clinica:'Clínica DentaSalud',area:'Ortodoncia'},
+  {id:'d2',nombre:'Dr. Roberto Peña',email:'rpena@lomas.mx',tel:'777 189 8482',codigo:'ARO-DR-1530',puntos:720,clinica:'Clínica Lomas',area:'Ortodoncia'},
+  {id:'d3',nombre:'Dr. Andrés Loza',email:'aloza@centro.mx',tel:'777 209 6821',codigo:'ARO-DR-9007',puntos:150,clinica:'Consultorio Centro',area:'Radiología'}];
+ const P=[{id:'p1',nombre:'Daniela Alarcón Chávez',email:'daniela@uaem.mx',tel:'777 222 4110',fechaNac:'2002-05-14',puntos:75,doctorId:'d1'},
+  {id:'p2',nombre:'Andrea González Flores',email:'andrea@hotmail.com',tel:'777 189 8482',fechaNac:'1999-11-02',puntos:50,doctorId:'d1'},
+  {id:'p3',nombre:'Raúl Navarrete Cuevas',email:'raul@gmail.com',tel:'777 346 9163',fechaNac:'1990-03-21',puntos:25,doctorId:'d2'},
+  {id:'p4',nombre:'Jesús Rojas Figueroa',email:'jesus@gmail.com',tel:'777 209 6821',fechaNac:'2005-07-30',puntos:0,doctorId:null},
+  {id:'p5',nombre:'Brayan Adame Hernández',email:'brayan@gmail.com',tel:'442 376 5954',fechaNac:'1995-01-19',puntos:100,doctorId:'d1'},
+  {id:'p6',nombre:'María Esther Burgos',email:'esther@gmail.com',tel:'777 161 6486',fechaNac:'1988-09-08',puntos:25,doctorId:'d2'}];
+ const R=[{id:'r1',pacienteId:'p1',doctorId:'d1',estudios:['Ortopantomografía (Panorámica)','Cefalometría Ricketts'],estatus:'Con Cita',fechaAlta:day(-3),fechaCita:day(1),hora:'10:30',monto:1800,clinica:'Clínica DentaSalud',obs:''},
+  {id:'r2',pacienteId:'p2',doctorId:'d1',estudios:['PAQ 1 · Digital'],estatus:'Completo',fechaAlta:day(-10),fechaCita:day(-2),hora:'12:00',monto:850,clinica:'Clínica DentaSalud',obs:''},
+  {id:'r3',pacienteId:'p3',doctorId:'d2',estudios:['Escaneo Intraoral'],estatus:'Por Confirmar',fechaAlta:day(-1),fechaCita:null,hora:'',monto:200,clinica:'Clínica Lomas',obs:''},
+  {id:'r4',pacienteId:'p5',doctorId:'d1',estudios:['Tomografía Cone Beam'],estatus:'Con Cita',fechaAlta:day(-2),fechaCita:day(0),hora:'17:00',monto:1050,clinica:'Clínica DentaSalud',obs:'Paciente con bracket'},
+  {id:'r5',pacienteId:'p6',doctorId:'d2',estudios:['Fotografías Clínicas'],estatus:'Con Cita',fechaAlta:day(-2),fechaCita:day(2),hora:'11:00',monto:850,clinica:'Clínica Lomas',obs:''}];
+ return {doctores:D,pacientes:P,recetarios:R,actividad:[{ts:day(0),tipo:'afiliacion',texto:'Brayan Adame se afilió con tu código',pts:100,rol:'d1'},{ts:day(-1),tipo:'cita',texto:'Cita completada · Andrea González',pts:20,rol:'d1'}],sesion:null};
+}
+let DB=load();
+function load(){try{const r=localStorage.getItem(KEY);if(r)return JSON.parse(r);}catch(e){}const s=seed();localStorage.setItem(KEY,JSON.stringify(s));return s;}
+function save(){localStorage.setItem(KEY,JSON.stringify(DB));}
+function resetDemo(){localStorage.removeItem(KEY);DB=load();state.screen=navFor(state.role)[0].id;render();snack('Demo reiniciada','refresh');}
+const doc=id=>DB.doctores.find(d=>d.id===id);
+const pac=id=>DB.pacientes.find(p=>p.id===id);
+const myRecetarios=did=>DB.recetarios.filter(r=>r.doctorId===did);
+const myPacientes=did=>DB.pacientes.filter(p=>p.doctorId===did);
+const fmtDate=d=>d?new Date(d+'T00:00').toLocaleDateString('es-MX',{day:'2-digit',month:'short'}):'—';
+const fmtFull=d=>d?new Date(d+'T00:00').toLocaleDateString('es-MX',{weekday:'long',day:'2-digit',month:'long'}):'—';
+function timeUntil(fecha,hora){if(!fecha)return null;const dt=new Date(fecha+'T'+(hora||'09:00'));const ms=dt-new Date();if(ms<0)return{str:'finalizó',past:true,ms};const min=Math.floor(ms/6e4),h=Math.floor(min/60),d=Math.floor(h/24);let str;if(d>0)str='en '+d+' día'+(d>1?'s':'')+(h%24?' '+(h%24)+'h':'');else if(h>0)str='en '+h+'h'+(min%60?' '+(min%60)+'min':'');else str='en '+min+' min';return{str,ms};}
+function nextCita(pred){return DB.recetarios.filter(r=>r.fechaCita&&r.estatus==='Con Cita'&&(!pred||pred(r))).map(r=>({r,t:timeUntil(r.fechaCita,r.hora)})).filter(x=>x.t&&!x.t.past).sort((a,b)=>a.t.ms-b.t.ms)[0];}
+
+const state={role:null,userId:null,screen:null};
+let selDay=new Date().toISOString().slice(0,10);
+function navFor(role){
+ if(role==='admin')return[{id:'calendario',t:'Calendario',i:'cal'},{id:'recetarios',t:'Estatus',i:'list'},{id:'doctores',t:'Doctores',i:'award'},{id:'pacientes',t:'Pacientes',i:'users'}];
+ if(role==='doctor')return[{id:'ddash',t:'Inicio',i:'home'},{id:'dpac',t:'Pacientes',i:'users'},{id:'dreceta',t:'Receta',i:'file'},{id:'dcitas',t:'Citas',i:'list'},{id:'dperfil',t:'Perfil',i:'user'}];
+ return[{id:'pdash',t:'Inicio',i:'home'},{id:'pest',t:'Estudios',i:'file'},{id:'pagendar',t:'Agendar',i:'cal'},{id:'pperfil',t:'Perfil',i:'user'}];
+}
+const roleName={admin:'Administrador',doctor:'Doctor',paciente:'Paciente'};
+function enterRole(role){state.role=role;state.userId=role==='doctor'?'d1':role==='paciente'?'p4':'admin';state.screen=navFor(role)[0].id;render();}
+
+let snkT;
+function snack(msg,icon){const s=$('#snk');s.innerHTML=svg(icon||'check')+`<span>${esc(msg)}</span>`;s.classList.add('show');clearTimeout(snkT);snkT=setTimeout(()=>s.classList.remove('show'),3400);}
+function confetti(){const c=$('#conf');const cols=['#FCB92C','#5FA89B','#182132','#2E8B4F','#E0A111'];for(let i=0;i<70;i++){const d=ce('div','cf');d.style.left=Math.random()*100+'vw';d.style.top='-20px';d.style.background=cols[i%cols.length];d.style.animationDelay=Math.random()*.3+'s';d.style.transform=`rotate(${Math.random()*360}deg)`;c.appendChild(d);setTimeout(()=>d.remove(),1700);}}
+function openSheet(html){const s=$('#sheet');s.innerHTML='<div class="handle"></div>'+html;$('#scrim').classList.add('show');s.classList.add('show');bindSheet();}
+function closeSheet(){$('#scrim').classList.remove('show');$('#sheet').classList.remove('show');}
+$('#scrim').addEventListener('click',closeSheet);
+function animateCount(el,to){const dur=700,st=performance.now();if(matchMedia('(prefers-reduced-motion:reduce)').matches){el.textContent=to.toLocaleString('es-MX');return;}function step(t){const k=Math.min(1,(t-st)/dur);el.textContent=Math.round(to*(1-Math.pow(1-k,3))).toLocaleString('es-MX');if(k<1)requestAnimationFrame(step);}requestAnimationFrame(step);}
+
+/* points + CRUD */
+function assignToDoctor(pid,did,welcome){const p=pac(pid),d=doc(did);if(!p||!d)return;const had=p.doctorId;p.doctorId=did;d.puntos+=100;if(!had&&welcome!==false)p.puntos+=50;
+ DB.actividad.unshift({ts:new Date().toISOString().slice(0,10),tipo:'afiliacion',texto:`${p.nombre} afiliado con tu código`,pts:100,rol:did});save();}
+function affiliateByCode(pid,code,welcome){const d=DB.doctores.find(x=>x.codigo.toUpperCase()===(code||'').trim().toUpperCase());if(!d){snack('Código no válido','close');return false;}assignToDoctor(pid,d.id,welcome);return d;}
+function completeCita(rid){const r=DB.recetarios.find(x=>x.id===rid);if(!r||r.estatus!=='Con Cita')return;r.estatus='Completo';const p=pac(r.pacienteId),d=doc(r.doctorId);if(p)p.puntos+=25;if(d&&p&&p.doctorId===d.id){d.puntos+=20;DB.actividad.unshift({ts:new Date().toISOString().slice(0,10),tipo:'cita',texto:`Cita completada · ${p.nombre}`,pts:20,rol:d.id});}save();render();resultEmail(r);}
+function cancelCita(rid,motivo,byRole){const r=DB.recetarios.find(x=>x.id===rid);if(!r)return;r.estatus='Cancelado';r.motivoCancelacion=motivo;r.canceladaPor=byRole;save();
+ snack('Cita cancelada y registrada','close');closeSheet();render();}
+function redeem(pid){const p=pac(pid);if(p.puntos<100){snack('Necesitas 100 puntos','gift');return;}p.puntos-=100;save();confetti();snack('¡Canjeado! 5% de descuento','ticket');render();}
+let _seq=Date.now();
+const uid=p=>p+(++_seq).toString(36);
+function genCode(){return 'ARO-DR-'+Math.floor(1000+Math.random()*9000);}
+function createCita(o){const r={id:uid('r'),pacienteId:o.pacienteId,doctorId:o.doctorId,estudios:o.estudios,estatus:o.fechaCita?'Con Cita':'Por Confirmar',fechaAlta:new Date().toISOString().slice(0,10),fechaCita:o.fechaCita||null,hora:o.hora||'',monto:+o.monto||0,clinica:doc(o.doctorId)?doc(o.doctorId).clinica:'',obs:o.obs||''};DB.recetarios.unshift(r);save();return r;}
+function addPaciente(o){const p={id:uid('p'),nombre:o.nombre,email:o.email,tel:o.tel,fechaNac:o.fechaNac,puntos:0,doctorId:null};DB.pacientes.push(p);save();return p;}
+function addDoctor(o){const d={id:uid('d'),nombre:o.nombre,email:o.email,tel:o.tel,codigo:genCode(),puntos:0,clinica:o.clinica,area:o.area||'Ortodoncia'};DB.doctores.push(d);save();return d;}
+function delPaciente(id){DB.recetarios=DB.recetarios.filter(r=>r.pacienteId!==id);DB.pacientes=DB.pacientes.filter(p=>p.id!==id);save();}
+function delDoctor(id){DB.doctores=DB.doctores.filter(d=>d.id!==id);DB.pacientes.forEach(p=>{if(p.doctorId===id)p.doctorId=null;});save();}
+
+function ringHTML(p){const t=tierOf(p),nx=nextTier(p);const base=t.min,top=nx?nx.min:t.min+1000;const frac=nx?Math.min(1,(p-base)/(top-base)):1;const r=42,c=2*Math.PI*r,off=c*(1-frac);
+ return `<div class="ring-wrap"><svg width="96" height="96" viewBox="0 0 96 96"><circle class="rc" cx="48" cy="48" r="${r}" stroke="rgba(255,255,255,.22)"/><circle class="rc" cx="48" cy="48" r="${r}" stroke="${t.c}" stroke-dasharray="${c}" stroke-dashoffset="${c}" style="transition:stroke-dashoffset 1s ease .2s" data-off="${off}"/></svg><div class="center" style="color:#fff"><b style="font-size:13px">${t.n}</b><span style="font-size:10px;opacity:.85">${nx?('faltan '+(nx.min-p)):'máx'}</span></div></div>`;}
+function animateRings(){document.querySelectorAll('.rc[data-off]').forEach(c=>requestAnimationFrame(()=>c.style.strokeDashoffset=c.dataset.off));}
+
+function render(){
+ const h=location.hash||'';
+ if(h.indexOf('#portal/')===0){$('#app').innerHTML=portalView(decodeURIComponent(h.slice(8)));wireDL(document);window.scrollTo(0,0);return;}
+ const app=$('#app');
+ if(!state.role){app.innerHTML=loginView();bind();return;}
+ const nav=navFor(state.role),cur=nav.find(n=>n.id===state.screen)||nav[0];
+ const rail=nav.map(n=>`<button class="navitem ${n.id===state.screen?'active':''}" data-nav="${n.id}">${svg(n.i)}<span>${n.t}</span></button>`).join('');
+ const bot=nav.map(n=>`<button class="navitem ${n.id===state.screen?'active':''}" data-nav="${n.id}">${svg(n.i)}<span>${n.t}</span><span class="pip"></span></button>`).join('');
+ app.innerHTML=`<div class="shell"><aside class="rail"><div class="brand"><span class="dot">a</span><b>aro3d</b></div><div class="role-pill">${roleName[state.role]}</div>${rail}<div class="spacer"></div><button class="navitem" data-act="reset">${svg('refresh')}<span>Reiniciar demo</span></button><button class="navitem" data-act="logout">${svg('logout')}<span>Cerrar sesión</span></button></aside>
+  <div class="main"><header class="appbar"><div class="ab-brand"><span class="dot">a</span>aro3d</div><div class="title">${cur.t}</div><div class="grow"></div><button class="iconbtn" data-act="reset" aria-label="Reiniciar">${svg('refresh')}</button><button class="iconbtn" data-act="logout" aria-label="Salir">${svg('logout')}</button></header>
+  <main class="content"><div class="screen" id="screen">${screenHTML(state.screen)}</div></main></div></div>
+  <nav class="bottomnav">${bot}</nav>${fabFor(state.screen)}`;
+ bind();animateRings();const pc=$('#ptsCount');if(pc)animateCount(pc,+pc.dataset.to);
+}
+function fabFor(s){const m={calendario:['addcita','Agregar Cita'],dpac:['addpac','Nuevo Paciente'],pacientes:['addpac','Nuevo Paciente'],doctores:['adddoc','Nuevo Doctor']};const f=m[s];return f?`<button class="fab" data-act="${f[0]}">${svg('plus')} ${f[1]}</button>`:'';}
+
+function loginView(){
+ return `<div class="auth"><div class="auth-card">
+  <div class="logo"><span class="dot">a</span><b>aro3d</b></div>
+  <p style="text-align:center;color:var(--txt-2);margin:2px 0 2px">Apoyo Radiológico Oral 3D</p>
+  <div class="social">
+   <button class="social-btn" data-social="google">${gIcon} Continuar con Google</button>
+   <button class="social-btn apple" data-social="apple">${appleIcon} Continuar con Apple</button>
+  </div>
+  <div class="sep">o elige un rol (demo)</div>
+  <div class="role-pick">
+   <button class="role-opt" data-enter="admin"><span class="ic" style="background:var(--navy)">${svg('award')}</span><span><b>Administrador</b><span>Calendario, CRUD doctores y pacientes</span></span><span style="margin-left:auto;color:var(--txt-3)">${svg('chevR')}</span></button>
+   <button class="role-opt" data-enter="doctor"><span class="ic" style="background:linear-gradient(135deg,var(--navy),var(--teal))">${svg('stetho')}</span><span><b>Doctor</b><span>Puntos, afiliación y CRUD de pacientes</span></span><span style="margin-left:auto;color:var(--txt-3)">${svg('chevR')}</span></button>
+   <button class="role-opt" data-enter="paciente"><span class="ic" style="background:var(--teal)">${svg('user')}</span><span><b>Paciente</b><span>Mis estudios, puntos y agenda</span></span><span style="margin-left:auto;color:var(--txt-3)">${svg('chevR')}</span></button>
+  </div>
+  <div class="recap" style="display:flex;align-items:center;gap:11px;border:1.5px solid var(--line);border-radius:10px;padding:11px 13px;margin-top:14px"><span style="width:24px;height:24px;border:2px solid #c3c9d2;border-radius:5px;display:grid;place-items:center"></span><span class="small" style="font-weight:700">No soy un robot</span><span style="margin-left:auto;font-size:10px;color:var(--txt-3);text-align:right">reCAPTCHA<br>demo</span></div>
+  <button class="btn text block" data-act="registro" style="margin-top:6px">Crear cuenta nueva</button>
+ </div></div>`;
+}
+
+const SCREENS={
+ calendario(){
+  const base=new Date(selDay+'T00:00');const y=base.getFullYear(),m=base.getMonth();
+  const first=new Date(y,m,1).getDay(),days=new Date(y,m+1,0).getDate(),todayS=new Date().toISOString().slice(0,10);
+  const has={};DB.recetarios.forEach(r=>{if(r.fechaCita&&r.estatus!=='Cancelado'){const k=r.fechaCita;has[k]=(has[k]||0)+1;}});
+  let cells='';['D','L','M','M','J','V','S'].forEach(d=>cells+=`<div class="dow">${d}</div>`);
+  for(let i=0;i<first;i++)cells+='<div></div>';
+  for(let d=1;d<=days;d++){const ds=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;cells+=`<button class="day ${has[ds]?'has':''} ${ds===todayS?'today':''} ${ds===selDay?'sel':''}" data-day="${ds}">${d}${has[ds]?'<span class="n"></span>':''}</button>`;}
+  const dayCitas=DB.recetarios.filter(r=>r.fechaCita===selDay&&r.estatus!=='Cancelado').sort((a,b)=>(a.hora||'').localeCompare(b.hora||''));
+  const nx=nextCita();
+  return `<div class="between" style="margin-bottom:14px;flex-wrap:wrap;gap:10px"><h1 class="page-h" style="margin:0">Calendario de Citas</h1>${nx?`<span class="cd">${svg('clock')} Próxima cita ${nx.t.str} · ${esc(pac(nx.r.pacienteId).nombre.split(' ')[0])}</span>`:''}</div>
+   <div class="grid doc-grid">
+    <div class="card"><div class="between" style="margin-bottom:12px"><b style="text-transform:capitalize">${base.toLocaleDateString('es-MX',{month:'long',year:'numeric'})}</b><span class="chip">${svg('cal',13)} ${Object.keys(has).length} días con citas</span></div><div class="cal">${cells}</div><p class="xsmall muted" style="margin:12px 0 0">Toca un día para ver sus citas</p></div>
+    <div class="card"><div class="between" style="margin-bottom:6px"><b style="text-transform:capitalize">${fmtFull(selDay)}</b><span class="chip info">${dayCitas.length} cita${dayCitas.length!==1?'s':''}</span></div>
+     <div class="stg" style="margin-top:8px">${dayCitas.length?dayCitas.map(r=>{const p=pac(r.pacienteId),d=doc(r.doctorId);return `<button class="list-item" data-cita="${r.id}" style="width:100%;text-align:left">
+       <span class="icon-box" style="color:var(--navy);font-weight:900;font-size:13px">${r.hora||'--'}</span>
+       <span style="flex:1;min-width:0"><b style="display:block">${esc(p.nombre)}</b><span class="small muted">${esc(d?d.nombre:'')} · ${esc(r.estudios[0])}</span></span>
+       <span class="chip ${estaChip[r.estatus]}">${r.estatus}</span></button>`;}).join(''):'<div style="text-align:center;padding:22px 0;color:var(--txt-3)">'+svg('cal')+'<p class="muted small" style="margin-top:6px">Sin citas este día</p></div>'}</div>
+     <button class="btn filled block" data-act="addcita" style="margin-top:12px">${svg('plus')} Agregar cita este día</button></div>
+   </div>`;
+ },
+ recetarios(){return recList(DB.recetarios,'Estatus de Citas',true);},
+ doctores(){
+  const s=[...DB.doctores].sort((a,b)=>b.puntos-a.puntos);
+  return `<h1 class="page-h">Doctores</h1><p class="page-sub">Ranking por puntos · administra los doctores (CRUD)</p>
+   <div class="card"><div class="stg">${s.map((d,i)=>{const t=tierOf(d.puntos);return `<div class="list-item">
+     <span style="font-weight:900;width:20px;color:var(--txt-3)">${i+1}</span><span class="avatar" style="background:linear-gradient(135deg,var(--navy),var(--teal))">${initials(d.nombre)}</span>
+     <span style="flex:1;min-width:0"><b style="display:block">${esc(d.nombre)}</b><span class="small muted">${esc(d.codigo)} · ${myPacientes(d.id).length} pac · ${esc(d.clinica)}</span></span>
+     <span style="text-align:right;margin-right:4px"><b style="display:block">${d.puntos.toLocaleString('es-MX')}</b><span class="badge-tier" style="background:${t.c}">${t.n}</span></span>
+     <button class="iconbtn sm" data-act="editdoc" data-id="${d.id}" aria-label="Editar">${svg('edit')}</button><button class="iconbtn sm" data-act="deldoc" data-id="${d.id}" aria-label="Eliminar" style="color:var(--danger)">${svg('trash')}</button></div>`;}).join('')}</div></div>`;
+ },
+ pacientes(){return pacCrudList(DB.pacientes,'Pacientes','Administra los pacientes (CRUD)');},
+ ddash(){
+  const d=doc('d1'),t=tierOf(d.puntos),nx=nextTier(d.puntos);const act=DB.actividad.filter(a=>a.rol===d.id).slice(0,4);const nc=nextCita(r=>r.doctorId===d.id);
+  return `<div class="doc-hero"><div class="between" style="align-items:flex-start">
+     <div><div class="small" style="opacity:.85;font-weight:700">Hola, ${esc(d.nombre)}</div>
+       <div class="row" style="align-items:flex-end;gap:8px;margin-top:6px"><span class="pts" id="ptsCount" data-to="${d.puntos}">0</span><span style="opacity:.85;margin-bottom:7px;font-weight:700">puntos</span></div>
+       <span class="badge-tier" style="background:${t.c};margin-top:8px">${svg('award',14)} ${t.n}</span></div>${ringHTML(d.puntos)}</div>
+     <div class="code-card"><div><div class="xsmall" style="opacity:.8;font-weight:700">TU CÓDIGO DE AFILIACIÓN</div><div class="code">${d.codigo}</div></div>
+       <div class="row"><button class="iconbtn" style="color:#fff;background:rgba(255,255,255,.12)" data-act="copycode" data-code="${d.codigo}" aria-label="Copiar">${svg('copy')}</button><button class="iconbtn" style="color:#fff;background:rgba(255,255,255,.12)" data-act="copycode" data-code="${d.codigo}" aria-label="Compartir">${svg('share')}</button></div></div></div>
+   ${nc?`<div class="card" style="margin-top:14px;border-color:var(--amber)"><div class="row"><span class="icon-box" style="color:var(--amber-d)">${svg('clock')}</span><div style="flex:1"><b>Tu próxima cita es ${nc.t.str}</b><div class="small muted">${esc(pac(nc.r.pacienteId).nombre)} · ${esc(nc.r.hora)} · ${fmtDate(nc.r.fechaCita)}</div></div><button class="btn tonal sm" data-cita="${nc.r.id}">Ver</button></div></div>`:''}
+   <div class="grid cols-3" style="margin-top:14px"><div class="kpi"><div class="v">${myPacientes(d.id).length}</div><div class="l">Pacientes afiliados</div></div><div class="kpi"><div class="v">${myRecetarios(d.id).filter(r=>r.estatus==='Con Cita').length}</div><div class="l">Citas activas</div></div><div class="kpi"><div class="v">+${act.reduce((s,a)=>s+(a.pts||0),0)}</div><div class="l">Puntos recientes</div></div></div>
+   <div class="card" style="margin-top:14px"><div class="between" style="margin-bottom:6px"><b>Actividad reciente</b>${nx?`<span class="small muted">faltan ${nx.min-d.puntos} para ${nx.n}</span>`:''}</div>
+     <div class="timeline">${act.length?act.map(a=>`<div class="ti"><span class="tdot">${svg(a.tipo==='afiliacion'?'spark':'check')}</span><span style="flex:1"><b class="small">${esc(a.texto)}</b><div class="xsmall muted">${fmtDate(a.ts)}</div></span><span class="plus-badge">+${a.pts}</span></div>`).join(''):'<p class="muted small">Sin actividad.</p>'}</div></div>
+   <button class="btn navy block" data-act="addpac" style="margin-top:14px">${svg('plus')} Dar de alta paciente (afiliar)</button>`;
+ },
+ dpac(){const d=doc('d1');return pacCrudList(myPacientes(d.id),'Mis Pacientes',myPacientes(d.id).length+' afiliados con tu código · da de alta y asigna',true);},
+ dreceta(){
+  return `<h1 class="page-h">Receta Virtual</h1><p class="page-sub">Llena la receta y envíala al paciente</p>
+   <div class="card">
+     <div class="row" style="gap:10px;flex-wrap:wrap"><div class="field" style="flex:2;min-width:200px;margin:0"><label>Paciente <span class="req">*</span></label><select id="rd_pac">${DB.pacientes.map(p=>`<option value="${p.id}">${esc(p.nombre)}</option>`).join('')}</select></div><div class="field" style="flex:1;min-width:130px;margin:0"><label>Doctor</label><input value="${esc(doc('d1').nombre)}" readonly></div></div>
+     <div class="field" style="margin-top:14px"><label>Formato de Entrega <span class="req">*</span></label><div class="deliv"><label><input type="radio" name="rd_ent" value="Correo Electrónico" checked> Correo Electrónico</label><label><input type="radio" name="rd_ent" value="USB"> USB (30 min posterior)</label></div></div>
+     <label style="font-weight:800;font-size:13.5px;color:var(--txt-2);display:block;margin:8px 0 8px">Selecciona los estudios <span class="req">*</span></label>
+     ${recetaCatalogHTML()}
+     <div class="field"><label>Anotaciones adicionales al caso</label><textarea id="rd_obs" placeholder="Notas para el laboratorio…"></textarea></div>
+     <div class="total-bar"><span>Total</span><b id="recetaTotal">$0.00</b></div>
+     <button class="btn filled block" data-act="enviarReceta" style="margin-top:12px">${svg('share')} Enviar receta</button>
+   </div>`;
+ },
+ dcitas(){return recList(myRecetarios('d1'),'Estatus de Citas',true);},
+ dperfil(){const d=doc('d1');return perfilForm({nombre:d.nombre,email:d.email,tel:d.tel,extra:[['Área de Preferencia',d.area],['Clínica',d.clinica],['Código',d.codigo]]},'Datos del Doctor');},
+ pdash(){
+  const p=pac('p4'),d=p.doctorId?doc(p.doctorId):null;const nc=nextCita(r=>r.pacienteId===p.id);
+  return `<div class="card" style="background:linear-gradient(135deg,var(--teal),#3f8478);color:#fff;border:none"><div class="small" style="opacity:.9;font-weight:700">Hola, ${esc(p.nombre)}</div>
+     <div class="row" style="align-items:flex-end;gap:8px;margin-top:4px"><span style="font-size:42px;font-weight:900;line-height:1" id="ptsCount" data-to="${p.puntos}">0</span><span style="opacity:.9;margin-bottom:6px;font-weight:700">puntos</span></div>
+     <div class="small" style="opacity:.9;margin-top:6px">Ganas puntos por cada cita completada</div>
+     <button class="btn block" style="background:rgba(255,255,255,.18);color:#fff;margin-top:14px" data-act="canjear">${svg('gift')} Canjear (100 pts = 5% desc.)</button></div>
+   ${nc?`<div class="card" style="margin-top:14px;border-color:var(--amber)"><div class="row"><span class="icon-box" style="color:var(--amber-d)">${svg('clock')}</span><div style="flex:1"><b>Tu próxima cita es ${nc.t.str}</b><div class="small muted">${esc(nc.r.estudios[0])} · ${d?esc(d.nombre):''} · ${esc(nc.r.hora)} ${fmtDate(nc.r.fechaCita)}</div></div><button class="btn tonal sm" data-cita="${nc.r.id}">Ver</button></div></div>`:''}
+   ${d?`<div class="card" style="margin-top:14px"><div class="between"><div class="row"><span class="avatar" style="background:var(--navy)">${initials(d.nombre)}</span><div><b style="display:block">${esc(d.nombre)}</b><span class="small muted">Tu doctor · ${esc(d.clinica)}</span></div></div><span class="chip ok">afiliado</span></div></div>`
+   :`<div class="card" style="margin-top:14px"><b>Afíliate con un doctor</b><p class="small muted" style="margin:6px 0 12px">Ingresa el código y ambos ganan puntos.</p>
+     <div class="field" style="margin:0"><label>Código de doctor</label><input id="aff_code" placeholder="ARO-DR-0000" autocomplete="off"></div>
+     <label class="tc"><input type="checkbox" id="aff_tc"> Acepto los <a>términos y condiciones</a> del programa de afiliación.</label>
+     <button class="btn filled block" data-act="afiliar">${svg('spark')} Afiliarme (+50 pts)</button>
+     <p class="xsmall muted" style="margin-top:8px">Prueba con <b>ARO-DR-4821</b></p></div>`}`;
+ },
+ pest(){const p=pac('p4');const rs=DB.recetarios.filter(r=>r.pacienteId===p.id&&r.estatus==='Completo');
+  return `<h1 class="page-h">Mis Estudios</h1><div class="card">${rs.length?`<div class="stg">${rs.map(r=>`<div class="list-item"><span class="icon-box">${svg('tooth')}</span><span style="flex:1"><b class="small">${esc(r.estudios.join(', '))}</b><div class="xsmall muted">${fmtDate(r.fechaCita)} · ${esc(doc(r.doctorId)?doc(r.doctorId).nombre:'')}</div></span><button class="btn tonal sm" data-view="${r.id}">${svg('eye',16)} Ver</button></div>`).join('')}</div>`:'<div style="text-align:center;padding:24px 0;color:var(--txt-3)">'+svg('file')+'<p class="muted">No hay estudios todavía.</p></div>'}</div>`;
+ },
+ pagendar(){return `<h1 class="page-h">Agendar Cita</h1><p class="page-sub">Elige estudio, fecha y hora</p><div class="card">
+    <div class="field"><label>Estudio / Paquete <span class="req">*</span></label><select id="ag_est">${ESTUDIOS.concat(PAQUETES).map(e=>`<option>${esc(e)}</option>`).join('')}</select></div>
+    <div class="field"><label>Fecha <span class="req">*</span></label><input type="date" id="ag_fecha" value="${new Date(Date.now()+864e5).toISOString().slice(0,10)}"></div>
+    <div class="field"><label>Hora <span class="req">*</span></label><select id="ag_hora">${HORAS.map(h=>`<option>${h}</option>`).join('')}</select></div>
+    <button class="btn filled block" data-act="agendar">${svg('cal')} Confirmar cita</button></div>`;
+ },
+ pperfil(){const p=pac('p4');return perfilForm({nombre:p.nombre,email:p.email||'paciente@aro3d.mx',tel:p.tel,extra:[['Fecha de Nacimiento',p.fechaNac],['Edad',edad(p.fechaNac)+' años']]},'Datos del Paciente');}
+};
+
+function recList(list,title,allowActions){
+ return `<h1 class="page-h">${title}</h1><div class="search">${svg('search')}<input placeholder="Buscar paciente…" oninput="filterRecs(this.value)"></div>
+  <div class="card"><div class="stg" id="recRows">${list.length?list.map(r=>recRow(r,allowActions)).join(''):'<p class="muted">Sin recetarios.</p>'}</div></div>`;
+}
+function recRow(r){const p=pac(r.pacienteId),d=doc(r.doctorId);
+ return `<button class="list-item recrow" data-cita="${r.id}" data-name="${esc((p?p.nombre:'').toLowerCase())}" style="width:100%;text-align:left">
+   <span class="avatar" style="background:var(--navy)">${initials(p?p.nombre:'?')}</span>
+   <span style="flex:1;min-width:0"><b style="display:block">${esc(p?p.nombre:'—')}</b><span class="small muted">${esc(d?d.nombre:'')} · ${esc(r.estudios[0])}${r.estudios.length>1?' +'+(r.estudios.length-1):''}</span></span>
+   <span style="text-align:right"><span class="chip ${estaChip[r.estatus]}">${r.estatus}</span><div class="xsmall muted" style="margin-top:4px">${r.fechaCita?(esc(r.hora)+' '+fmtDate(r.fechaCita)):'sin fecha'}</div></span></button>`;
+}
+window.filterRecs=q=>{q=q.toLowerCase();document.querySelectorAll('.recrow').forEach(el=>el.style.display=el.dataset.name.includes(q)?'':'none');};
+
+function pacCrudList(list,title,sub,doctorCtx){
+ return `<h1 class="page-h">${title}</h1>${sub?`<p class="page-sub">${sub}</p>`:''}
+  <div class="card"><div class="stg">${list.length?list.map(p=>{const d=p.doctorId?doc(p.doctorId):null;return `<div class="list-item">
+    <span class="avatar">${initials(p.nombre)}</span>
+    <span style="flex:1;min-width:0"><b style="display:block">${esc(p.nombre)}</b><span class="small muted">${esc(p.tel)} · ${d?esc(d.nombre):'<i>sin doctor</i>'}</span></span>
+    <span class="chip teal">${p.puntos} pts</span>
+    <button class="iconbtn sm" data-vpac="${p.id}" aria-label="Ver estudios">${svg('eye')}</button>
+    <button class="iconbtn sm" data-act="editpac" data-id="${p.id}" aria-label="Editar">${svg('edit')}</button>
+    <button class="iconbtn sm" data-act="delpac" data-id="${p.id}" aria-label="Eliminar" style="color:var(--danger)">${svg('trash')}</button></div>`;}).join(''):'<div style="text-align:center;padding:20px 0;color:var(--txt-3)">'+svg('users')+'<p class="muted">Sin pacientes. Da de alta uno.</p></div>'}</div>
+   <button class="btn filled block" data-act="addpac" style="margin-top:14px">${svg('plus')} Dar de alta paciente</button></div>`;
+}
+function perfilForm(o,title){
+ return `<h1 class="page-h">${title}</h1>
+  <div class="card" style="text-align:center;margin-bottom:14px"><span class="avatar" style="width:80px;height:80px;font-size:28px;margin:0 auto 10px;background:linear-gradient(135deg,var(--navy),var(--teal))">${initials(o.nombre)}</span><b style="font-size:18px;display:block">${esc(o.nombre)}</b><span class="chip teal" style="margin-top:6px">${roleName[state.role]}</span></div>
+  <div class="card"><div class="field"><label>Nombre <span class="req">*</span></label><input value="${esc(o.nombre)}"></div><div class="field"><label>Correo <span class="req">*</span></label><input value="${esc(o.email)}"></div><div class="field"><label>Teléfono <span class="req">*</span></label><input value="${esc(o.tel)}"></div>
+   ${o.extra.map(([l,v])=>`<div class="field"><label>${l}</label><input value="${esc(v)}"></div>`).join('')}
+   <div class="row" style="gap:10px;margin-top:6px"><button class="btn tonal" data-act="toast" data-msg="Contraseña actualizada">Actualizar contraseña</button><button class="btn filled" data-act="toast" data-msg="Cambios guardados">${svg('check')} Guardar</button></div></div>`;
+}
+function screenHTML(s){try{return(SCREENS[s]||(()=>'<div class="card">—</div>'))();}catch(e){return '<div class="card">Error: '+esc(e.message)+'</div>';}}
+
+/* sheets */
+function citaSheet(id){const r=DB.recetarios.find(x=>x.id===id);if(!r)return;const p=pac(r.pacienteId),d=doc(r.doctorId);const canCancel=r.estatus==='Con Cita'||r.estatus==='Por Confirmar';
+ openSheet(`<h3>Detalle de Cita</h3>
+  <div class="row" style="margin-bottom:14px"><span class="avatar" style="background:var(--navy)">${initials(p.nombre)}</span><div style="flex:1"><b>${esc(p.nombre)}</b><div class="small muted">${esc(p.tel)} · ${edad(p.fechaNac)} años</div></div><span class="chip ${estaChip[r.estatus]}">${r.estatus}</span></div>
+  ${[['Doctor',d?d.nombre:'—'],['Clínica',r.clinica||'—'],['Fecha',fmtFull(r.fechaCita)],['Hora',r.hora||'—'],['Estudios',r.estudios.join(', ')],['Monto',money(r.monto)],['Observaciones',r.obs||'—']].map(([k,v])=>`<div class="between" style="padding:9px 0;border-bottom:1px solid var(--line)"><span class="muted small">${k}</span><b class="small" style="text-align:right;max-width:62%">${esc(v)}</b></div>`).join('')}
+  ${r.estatus==='Cancelado'&&r.motivoCancelacion?`<div class="card" style="margin-top:12px;background:#fdeceb;border-color:#f3c8c4"><b class="small" style="color:var(--danger)">Motivo de cancelación</b><p class="small" style="margin:4px 0 0">${esc(r.motivoCancelacion)}</p></div>`:''}
+  ${r.fechaCita&&r.estatus!=='Cancelado'?`<div class="row" style="gap:9px;margin-top:14px"><button class="btn tonal sm" style="flex:1" data-cal="google" data-rid="${r.id}">${gIcon}Google Cal</button><button class="btn navy sm" style="flex:1" data-cal="apple" data-rid="${r.id}">${appleIcon}Apple Cal</button></div>`:''}
+  <div class="row" style="gap:10px;margin-top:14px">${canCancel?`<button class="btn danger" data-cancel="${r.id}">${svg('close')} Cancelar cita</button>`:''}${r.estatus==='Con Cita'?`<button class="btn filled" style="flex:1" onclick="completeCita('${r.id}')">${svg('check')} Completar</button>`:r.estatus==='Completo'?`<button class="btn filled" style="flex:1" data-view="${r.id}">${svg('eye')} Visualizar estudio</button>`:`<button class="btn tonal" style="flex:1" onclick="closeSheet()">Cerrar</button>`}</div>`);
+}
+function cancelSheet(rid){const byRole=roleName[state.role];
+ openSheet(`<h3>Cancelar cita</h3><p class="small muted" style="margin-top:-8px">El motivo es obligatorio y quedará registrado.</p>
+  <div class="field" id="cf"><label>Motivo de cancelación <span class="req">*</span></label><textarea id="cmot" placeholder="Escribe el motivo…" oninput="document.getElementById('cbtn').disabled=!this.value.trim()"></textarea></div>
+  <p class="xsmall muted">Cancela: ${byRole}</p>
+  <div class="row" style="gap:10px;margin-top:12px"><button class="btn tonal" onclick="closeSheet()">Volver</button><button class="btn danger" id="cbtn" disabled onclick="(function(){var v=document.getElementById('cmot').value.trim();if(!v){document.getElementById('cf').classList.add('err');snack('Escribe el motivo','close');return;}cancelCita('${rid}',v,'${byRole}');})()">${svg('close')} Confirmar cancelación</button></div>`);
+}
+function calSim(rid,prov){const r=DB.recetarios.find(x=>x.id===rid);const p=pac(r.pacienteId),d=doc(r.doctorId);
+ openSheet(`<h3>${prov==='apple'?'Apple Calendar':'Google Calendar'}</h3>
+  <div style="text-align:center;padding:6px 0 14px"><span class="icon-box" style="width:64px;height:64px;border-radius:18px;margin:0 auto;color:var(--ok)">${svg('check',30)}</span>
+  <p style="font-weight:800;margin:12px 0 2px">Agregado a tu agenda (demo)</p><p class="small muted" style="margin:0">${esc(r.estudios[0])} · ${fmtFull(r.fechaCita)} ${esc(r.hora)}</p></div>
+  <div class="card" style="background:var(--surface-2);border:none"><div class="row" style="margin-bottom:6px">${svg('mail',18)}<b class="small">Correos enviados</b></div><p class="xsmall muted" style="margin:0">Paciente: ${esc(p.email||'—')}<br>Doctor: ${esc(d?d.email:'—')}</p></div>
+  <button class="btn filled block" style="margin-top:14px" onclick="closeSheet()">Entendido</button>`);}
+function emailSim(r){const p=pac(r.pacienteId),d=doc(r.doctorId);
+ openSheet(`<h3>¡Cita confirmada!</h3>
+  <div class="card" style="border-color:var(--ok)"><div class="between"><div class="row"><span class="avatar" style="background:var(--navy)">${initials(p.nombre)}</span><div><b>${esc(p.nombre)}</b><div class="small muted">${esc(d?d.nombre:'')} · ${esc(r.clinica)}</div></div></div><span class="chip info">Con Cita</span></div>
+   <div class="between" style="margin-top:10px"><span class="cd">${svg('clock')} ${fmtFull(r.fechaCita)}</span><b>${esc(r.hora)}</b></div>
+   <p class="small muted" style="margin:10px 0 0">${esc(r.estudios.join(', '))}</p></div>
+  <div class="card" style="background:var(--surface-2);border:none;margin-top:12px"><div class="row">${svg('mail',18)}<span class="small" style="font-weight:700">Correo enviado al paciente y al doctor</span></div></div>
+  <p class="small muted" style="margin:14px 0 8px;font-weight:700">Agregar a la agenda:</p>
+  <div class="row" style="gap:10px"><button class="btn tonal" style="flex:1" data-cal="google" data-rid="${r.id}">${gIcon} Google</button><button class="btn navy" style="flex:1" data-cal="apple" data-rid="${r.id}">${appleIcon} Apple</button></div>
+  <button class="btn filled block" style="margin-top:12px" onclick="closeSheet()">Listo</button>`);}
+function addCitaSheet(){
+ openSheet(`<h3>Agregar Cita</h3>
+  <div class="field"><label>Paciente <span class="req">*</span></label><select id="ac_pac">${DB.pacientes.map(p=>`<option value="${p.id}">${esc(p.nombre)}</option>`).join('')}</select></div>
+  <div class="field"><label>Doctor <span class="req">*</span></label><select id="ac_doc">${DB.doctores.map(d=>`<option value="${d.id}" ${state.role==='doctor'&&d.id==='d1'?'selected':''}>${esc(d.nombre)} · ${esc(d.clinica)}</option>`).join('')}</select></div>
+  <div class="field"><label>Estudio <span class="req">*</span></label><select id="ac_est">${ESTUDIOS.concat(PAQUETES).map(e=>`<option>${esc(e)}</option>`).join('')}</select></div>
+  <div class="row" style="gap:10px"><div class="field" style="flex:1"><label>Fecha <span class="req">*</span></label><input type="date" id="ac_fecha" value="${selDay}"></div><div class="field" style="flex:1"><label>Hora <span class="req">*</span></label><select id="ac_hora">${HORAS.map(h=>`<option>${h}</option>`).join('')}</select></div></div>
+  <div class="field"><label>Monto</label><input type="number" id="ac_monto" value="850"></div>
+  <div class="field"><label>Observaciones</label><textarea id="ac_obs" placeholder="Notas…"></textarea></div>
+  <div class="row" style="gap:10px;margin-top:4px"><button class="btn tonal" onclick="closeSheet()">Cancelar</button><button class="btn filled" style="flex:1" data-act="saveCita">${svg('check')} Crear y enviar</button></div>`);
+}
+function pacFormSheet(id){const p=id?pac(id):null;const docCtx=state.role==='doctor';
+ openSheet(`<h3>${p?'Editar paciente':'Dar de alta paciente'}</h3>
+  <div class="field"><label>Nombre completo <span class="req">*</span></label><input id="pf_n" value="${p?esc(p.nombre):''}" placeholder="Nombre del paciente"></div>
+  <div class="field"><label>Correo</label><input id="pf_e" value="${p?esc(p.email||''):''}" placeholder="correo@ejemplo.com"></div>
+  <div class="row" style="gap:10px"><div class="field" style="flex:1"><label>Teléfono</label><input id="pf_t" value="${p?esc(p.tel):''}" placeholder="777 000 0000"></div><div class="field" style="flex:1"><label>Nacimiento</label><input type="date" id="pf_f" value="${p?p.fechaNac:''}"></div></div>
+  ${!p?`<div class="field"><label>Asignar / afiliar a doctor</label><select id="pf_doc"><option value="">— sin afiliar —</option>${docCtx?`<option value="d1" selected>Yo (${esc(doc('d1').nombre)})</option>`:''}${DB.doctores.filter(d=>!(docCtx&&d.id==='d1')).map(d=>`<option value="${d.id}">${esc(d.nombre)} · ${esc(d.codigo)}</option>`).join('')}</select><span class="hint">El doctor gana +100 y el paciente +50 al afiliarse.</span></div>
+   <label class="tc"><input type="checkbox" id="pf_tc"> El paciente acepta los <a>términos y condiciones</a> de afiliación.</label>`:''}
+  <div class="row" style="gap:10px;margin-top:4px"><button class="btn tonal" onclick="closeSheet()">Cancelar</button><button class="btn filled" style="flex:1" data-act="savePac" data-id="${id||''}">${svg('check')} Guardar</button></div>`);
+}
+function docFormSheet(id){const d=id?doc(id):null;
+ openSheet(`<h3>${d?'Editar doctor':'Dar de alta doctor'}</h3>
+  <div class="field"><label>Nombre <span class="req">*</span></label><input id="df_n" value="${d?esc(d.nombre):''}" placeholder="Dr. / Dra. Nombre"></div>
+  <div class="field"><label>Correo <span class="req">*</span></label><input id="df_e" value="${d?esc(d.email):''}" placeholder="correo@clinica.mx"></div>
+  <div class="row" style="gap:10px"><div class="field" style="flex:1"><label>Teléfono</label><input id="df_t" value="${d?esc(d.tel):''}"></div><div class="field" style="flex:1"><label>Área</label><input id="df_a" value="${d?esc(d.area):'Ortodoncia'}"></div></div>
+  <div class="field"><label>Clínica</label><input id="df_c" value="${d?esc(d.clinica):''}" placeholder="Nombre de la clínica"></div>
+  ${d?`<p class="xsmall muted">Código: <b>${esc(d.codigo)}</b></p>`:'<p class="xsmall muted">Se generará un código de afiliación automáticamente.</p>'}
+  <div class="row" style="gap:10px;margin-top:8px"><button class="btn tonal" onclick="closeSheet()">Cancelar</button><button class="btn filled" style="flex:1" data-act="saveDoc" data-id="${id||''}">${svg('check')} Guardar</button></div>`);
+}
+function confirmDel(kind,id,name){openSheet(`<h3>Eliminar</h3><p>¿Seguro que deseas eliminar a <b>${esc(name)}</b>?${kind==='pac'?' Se borrarán sus citas.':''}</p><div class="row" style="gap:10px;margin-top:16px"><button class="btn tonal" onclick="closeSheet()">Cancelar</button><button class="btn danger" style="flex:1" data-act="doDel" data-kind="${kind}" data-id="${id}">${svg('trash')} Eliminar</button></div>`);}
+function registroSheet(){openSheet(`<h3>Crear cuenta</h3>
+  <div class="field"><label>Nombre completo <span class="req">*</span></label><input placeholder="Tu nombre"></div>
+  <div class="field"><label>Tipo de usuario</label><div class="seg full"><button class="on" type="button">Paciente</button><button type="button">Doctor</button></div></div>
+  <div class="field"><label>Correo <span class="req">*</span></label><input type="email" placeholder="correo@ejemplo.com"></div>
+  <div class="field"><label>Contraseña <span class="req">*</span></label><input type="password" placeholder="••••••••"></div>
+  <label class="tc"><input type="checkbox"> Acepto los <a>términos y condiciones</a>.</label>
+  <button class="btn filled block" onclick="closeSheet();enterRole('paciente')">Crear cuenta y entrar</button>`);}
+
+/* ===== catálogo de la receta (live total) ===== */
+function recetaCatalogHTML(){
+ return CATALOGO.map(cat=>`<div class="cat-box"><div class="cat-h">${esc(cat.cat)}</div>${cat.items.map(it=>{
+   const sub=(it.ceph?CEPH:(it.opc||[])).map(o=>`<label class="opc"><input type="checkbox" class="rd_opc" data-for="${it.id}"><span>${esc(o)}</span></label>`).join('');
+   return `<div class="serv-row">
+     <label class="serv-main"><input type="checkbox" class="rd_serv" value="${esc(it.n)}" data-c="${it.c}" data-id="${it.id}" onchange="recetaTotal()"><span>${esc(it.n)}</span></label>
+     <span class="serv-price">${money(it.c)}</span>
+     <div class="serv-opts">${sub}<input type="text" class="serv-otro" data-for="${it.id}" placeholder="Otro…"></div>
+   </div>`;}).join('')}</div>`).join('');
+}
+window.recetaTotal=function(){let t=0;document.querySelectorAll('.rd_serv:checked').forEach(c=>t+=+c.dataset.c);const el=document.getElementById('recetaTotal');if(el)el.textContent=money(t);return t;};
+
+/* ===== visor de estudio (render en tiempo real, simulado) ===== */
+function lcg(seed){let s=(seed>>>0)||1;return ()=>(s=(s*1664525+1013904223)>>>0)/4294967296;}
+function hashId(id){let h=0;const t=''+id;for(let i=0;i<t.length;i++)h=(h*31+t.charCodeAt(i))>>>0;return h;}
+function studyArt(seed){
+ const rnd=lcg(seed);let teeth='';
+ for(let arch=0;arch<2;arch++){const dir=arch?1:-1,cy=150;
+   for(let i=0;i<14;i++){const t=i/13,x=70+t*460,yy=cy-dir*Math.sin(t*Math.PI)*42;const w=16+rnd()*9,h=24+rnd()*18,op=(.45+rnd()*.45).toFixed(2),rot=((t-.5)*64*dir).toFixed(1);
+     teeth+=`<g transform="translate(${x.toFixed(1)} ${yy.toFixed(1)}) rotate(${rot})"><rect x="${(-w/2).toFixed(1)}" y="${(-h/2).toFixed(1)}" width="${w.toFixed(1)}" height="${h.toFixed(1)}" rx="5" fill="url(#tg)" opacity="${op}"/></g>`;}}
+ let noise='';for(let i=0;i<46;i++)noise+=`<circle cx="${(rnd()*600).toFixed(0)}" cy="${(rnd()*300).toFixed(0)}" r="${(rnd()*1.7).toFixed(1)}" fill="#bfe" opacity="${(rnd()*.09).toFixed(2)}"/>`;
+ return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 300" width="600" height="300"><defs><radialGradient id="bg" cx="50%" cy="42%" r="72%"><stop offset="0" stop-color="#26384e"/><stop offset="1" stop-color="#06080c"/></radialGradient><linearGradient id="tg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#eef4f7"/><stop offset="1" stop-color="#7f93a3"/></linearGradient></defs><rect width="600" height="300" fill="url(#bg)"/><path d="M70 150 Q300 36 530 150" stroke="#9fb4c4" stroke-width="2" fill="none" opacity=".22"/><path d="M70 150 Q300 264 530 150" stroke="#9fb4c4" stroke-width="2" fill="none" opacity=".22"/>${teeth}${noise}<text x="14" y="22" fill="#7fe6c8" font-family="monospace" font-size="11" opacity=".7">ARO · 3D · ${(70+seed%30)}kV</text></svg>`;
+}
+let _viewSVG='';
+function studyViewer(rid){
+ const r=DB.recetarios.find(x=>x.id===rid);if(!r)return;const p=pac(r.pacienteId);
+ _viewSVG=studyArt(hashId(r.id));const isTom=/tomograf|cone|fov|3d|escaneo/i.test(r.estudios.join(' '));
+ openSheet(`<h3>Visor de Estudio</h3>
+   <div class="small muted" style="margin-top:-8px;margin-bottom:10px">${esc(p?p.nombre:'')} · ${esc(r.estudios.join(', '))} · ${fmtDate(r.fechaCita||r.fechaAlta)}</div>
+   <div class="viewer-canvas" id="vcanvas">${_viewSVG}<div class="scanbar"></div><div class="vload" id="vload"><div>${svg('scan',26)}</div><div>Reconstruyendo estudio…</div><div class="vbar"><i id="vbari"></i></div></div></div>
+   <div class="vctrl">${svg('expand',16)} Contraste <input type="range" min="80" max="180" value="110" oninput="vfilter(this.value)"></div>
+   ${isTom?`<div class="vctrl">${svg('scan',16)} Corte <input type="range" min="1" max="40" value="20" oninput="vslice(this.value)"> <span id="vsl">20/40</span></div>`:''}
+   <div class="dlrow">
+     <button class="btn tonal sm" data-dl="jpg" data-rid="${r.id}">${svg('download',16)} JPG</button>
+     <button class="btn tonal sm" data-dl="dcm" data-rid="${r.id}">${svg('download',16)} DICOM</button>
+     <button class="btn tonal sm" data-dl="pdf" data-rid="${r.id}">${svg('download',16)} Informe PDF</button>
+     <button class="btn navy sm" data-portal="${r.id}">${svg('ext',16)} Portal externo</button>
+   </div>`);
+ let pr=0;const bi=$('#vbari'),vl=$('#vload');
+ const iv=setInterval(()=>{pr+=8+Math.random()*16;if(bi)bi.style.width=Math.min(100,pr)+'%';if(pr>=100){clearInterval(iv);if(vl){vl.style.opacity='0';setTimeout(()=>{if(vl)vl.remove();},420);}}},120);
+}
+window.vfilter=function(v){const c=$('#vcanvas');if(c){const s=c.querySelector('svg');if(s)s.style.filter='contrast('+v+'%) brightness('+(v>135?1.12:1)+')';}};
+window.vslice=function(v){const s=$('#vsl');if(s)s.textContent=v+'/40';const c=$('#vcanvas');if(c){const e=c.querySelector('svg');if(e)e.style.filter='contrast(120%) brightness('+(0.65+v/40*0.75).toFixed(2)+')';}};
+
+/* ===== descargas ===== */
+function triggerDL(blob,fn){const u=URL.createObjectURL(blob);const a=ce('a');a.href=u;a.download=fn;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1500);}
+function deburr(s){return (''+s).normalize('NFD').replace(/[̀-ͯ]/g,'');}
+function buildPDF(title,lines){const ep=s=>deburr(s).replace(/([()\\])/g,'\\$1');let c='BT /F1 18 Tf 60 790 Td ('+ep(title)+') Tj /F1 11 Tf';lines.forEach(l=>{c+=' 0 -20 Td ('+ep(l)+') Tj';});c+=' ET';
+ const objs=['<</Type/Catalog/Pages 2 0 R>>','<</Type/Pages/Kids[3 0 R]/Count 1>>','<</Type/Page/Parent 2 0 R/MediaBox[0 0 595 842]/Resources<</Font<</F1 4 0 R>>>>/Contents 5 0 R>>','<</Type/Font/Subtype/Type1/BaseFont/Helvetica>>','<</Length '+c.length+'>>\nstream\n'+c+'\nendstream'];
+ let pdf='%PDF-1.4\n';const off=[];objs.forEach((o,i)=>{off.push(pdf.length);pdf+=(i+1)+' 0 obj\n'+o+'\nendobj\n';});const xs=pdf.length;
+ pdf+='xref\n0 '+(objs.length+1)+'\n0000000000 65535 f \n';off.forEach(o=>{pdf+=(''+o).padStart(10,'0')+' 00000 n \n';});
+ pdf+='trailer\n<</Size '+(objs.length+1)+'/Root 1 0 R>>\nstartxref\n'+xs+'\n%%EOF';return pdf;}
+function svgToJPG(svgStr,cb){const img=new Image();const u=URL.createObjectURL(new Blob([svgStr],{type:'image/svg+xml'}));img.onload=()=>{const cv=document.createElement('canvas');cv.width=1200;cv.height=600;const x=cv.getContext('2d');x.fillStyle='#06080c';x.fillRect(0,0,1200,600);x.drawImage(img,0,0,1200,600);URL.revokeObjectURL(u);cv.toBlob(cb,'image/jpeg',.92);};img.onerror=()=>cb(null);img.src=u;}
+function dl(fmt,rid){const r=DB.recetarios.find(x=>x.id===rid);if(!r)return;const p=pac(r.pacienteId);const base='ARO_'+deburr((p?p.nombre:'estudio')).replace(/\s+/g,'_')+'_'+r.id;const art=studyArt(hashId(r.id));
+ if(fmt==='jpg'){svgToJPG(art,b=>{if(b)triggerDL(b,base+'.jpg');snack('Estudio descargado (JPG)','download');});}
+ else if(fmt==='dcm'){const meta='DICM\n# ARO Demo DICOM\nPatientName: '+deburr(p?p.nombre:'')+'\nStudy: '+deburr(r.estudios.join(', '))+'\nDate: '+(r.fechaCita||r.fechaAlta)+'\nModality: CBCT\nInstitution: ARO 3D\n(archivo de demostración)';triggerDL(new Blob([meta],{type:'application/dicom'}),base+'.dcm');snack('Estudio descargado (DICOM)','download');}
+ else{const pdf=buildPDF('ARO - Informe de Estudio',['Paciente: '+(p?p.nombre:''),'Estudio: '+r.estudios.join(', '),'Doctor: '+(doc(r.doctorId)?doc(r.doctorId).nombre:''),'Clinica: '+(r.clinica||'-'),'Fecha: '+(r.fechaCita||r.fechaAlta),'Monto: '+money(r.monto),'','Hallazgos: estudio dentro de parametros normales (demo).','','aro3d.com - Apoyo Radiologico Oral 3D']);triggerDL(new Blob([pdf],{type:'application/pdf'}),base+'.pdf');snack('Informe descargado (PDF)','download');}}
+
+/* ===== portal externo (enlace del correo) ===== */
+function portalLink(id){return location.origin+location.pathname+'#portal/'+id;}
+function openPortal(id){closeSheet();location.hash='#portal/'+id;}
+function verPac(pid){const r=DB.recetarios.filter(x=>x.pacienteId===pid).sort((a,b)=>(''+(b.fechaCita||b.fechaAlta)).localeCompare(''+(a.fechaCita||a.fechaAlta)))[0];if(!r){snack('Este paciente aún no tiene estudios','file');return;}studyViewer(r.id);}
+function portalView(id){
+ const r=DB.recetarios.find(x=>x.id===id);
+ if(!r)return `<div class="portal"><div class="portal-head"><span class="dot">a</span><b style="font-size:20px">aro3d · Portal</b></div><div class="portal-wrap"><div class="card" style="margin-top:20px">Enlace no válido o expirado. <button class="btn text" data-home>Ir a la app</button></div></div></div>`;
+ const p=pac(r.pacienteId),d=doc(r.doctorId);
+ return `<div class="portal"><div class="portal-head"><span class="dot">a</span><div><b style="font-size:20px;display:block">aro3d · Portal de Estudios</b><span class="small" style="opacity:.85">Apoyo Radiológico Oral 3D</span></div><button class="btn" style="margin-left:auto;background:rgba(255,255,255,.18);color:#fff" data-home>${svg('logout',16)} Salir</button></div>
+  <div class="portal-wrap"><div class="card" style="margin-top:18px">
+    <div class="row" style="margin-bottom:12px"><span class="icon-box" style="color:var(--teal)">${svg('lock',18)}</span><div><b>Acceso por enlace seguro</b><div class="small muted">Estudio de ${esc(p?p.nombre:'')} · ${fmtDate(r.fechaCita||r.fechaAlta)}</div></div></div>
+    <div class="viewer-canvas">${studyArt(hashId(r.id))}</div>
+    <div class="between" style="margin-top:12px"><b>${esc(r.estudios.join(', '))}</b><span class="chip ${estaChip[r.estatus]}">${r.estatus}</span></div>
+    <p class="small muted" style="margin:8px 0 0">Doctor: ${esc(d?d.nombre:'—')} · ${esc(r.clinica||'')}</p>
+    <p class="small" style="margin:14px 0 8px;font-weight:800">Descargar estudio:</p>
+    <div class="dlrow"><button class="btn tonal sm" data-dl="jpg" data-rid="${r.id}">${svg('download',16)} JPG</button><button class="btn tonal sm" data-dl="dcm" data-rid="${r.id}">${svg('download',16)} DICOM</button><button class="btn tonal sm" data-dl="pdf" data-rid="${r.id}">${svg('download',16)} Informe PDF</button><button class="btn filled sm" data-view="${r.id}">${svg('eye',16)} Visor completo</button></div>
+  </div>
+  <p class="xsmall muted" style="text-align:center;margin-top:14px">Enlace enviado por correo:<br><b style="word-break:break-all">${esc(portalLink(r.id))}</b></p>
+  </div></div>`;
+}
+function resultEmail(r){const p=pac(r.pacienteId);
+ openSheet(`<h3>¡Estudio completado!</h3>
+  <div class="card" style="border-color:var(--ok)"><div class="row"><span class="icon-box" style="color:var(--ok)">${svg('check',20)}</span><div style="flex:1"><b>${esc(r.estudios.join(', '))}</b><div class="small muted">${esc(p?p.nombre:'')}</div></div></div></div>
+  <div class="card" style="background:var(--surface-2);border:none;margin-top:12px"><div class="row">${svg('mail',18)}<span class="small" style="font-weight:700">Enlace al estudio enviado por correo</span></div><p class="xsmall muted" style="margin:8px 0 0;word-break:break-all">${esc(portalLink(r.id))}</p></div>
+  <div class="dlrow"><button class="btn filled" data-view="${r.id}">${svg('eye',16)} Ver estudio</button><button class="btn navy" data-portal="${r.id}">${svg('ext',16)} Abrir portal</button></div>
+  <button class="btn tonal block" style="margin-top:10px" onclick="closeSheet()">Cerrar</button>`);}
+
+/* ===== confirmación de receta + agendar ===== */
+function recetaConfirm(r){openSheet(`<div style="text-align:center"><span class="icon-box" style="width:64px;height:64px;border-radius:18px;margin:0 auto;color:var(--ok)">${svg('check',30)}</span>
+  <h3 style="margin:12px 0 4px">¡Listo, tu receta ha sido enviada!</h3>
+  <p class="small muted" style="margin:0">Se envió por ${esc(r.entrega||'correo')} al paciente. Si deseas, agenda la cita.</p></div>
+  <button class="btn filled block" style="margin-top:16px" data-act="agendarReceta" data-rid="${r.id}">${svg('cal')} Agendar Cita</button>
+  <div class="row" style="gap:10px;margin-top:10px"><button class="btn tonal" style="flex:1" onclick="snack('Un especialista te contactará (demo)','mail')">Que me contacten</button><button class="btn tonal" style="flex:1" onclick="closeSheet()">Cerrar</button></div>`);}
+function scheduleSheet(rid){openSheet(`<h3>Agendar Cita</h3><p class="small muted" style="margin-top:-8px">Selecciona la fecha y hora de tu cita</p>
+  <div class="row" style="gap:10px"><div class="field" style="flex:1"><label>Fecha <span class="req">*</span></label><input type="date" id="sc_f" value="${new Date(Date.now()+864e5).toISOString().slice(0,10)}"></div><div class="field" style="flex:1"><label>Hora <span class="req">*</span></label><select id="sc_h">${HORAS.map(h=>`<option>${h}</option>`).join('')}</select></div></div>
+  <button class="btn filled block" data-act="confirmSchedule" data-rid="${rid}">${svg('check')} Confirmar cita</button>`);}
+
+function wireDL(root){
+ root.querySelectorAll('[data-dl]').forEach(b=>b.onclick=()=>dl(b.dataset.dl,b.dataset.rid));
+ root.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>studyViewer(b.dataset.view));
+ root.querySelectorAll('[data-vpac]').forEach(b=>b.onclick=()=>verPac(b.dataset.vpac));
+ root.querySelectorAll('[data-portal]').forEach(b=>b.onclick=()=>openPortal(b.dataset.portal));
+ root.querySelectorAll('[data-home]').forEach(b=>b.onclick=()=>{location.hash='';});
+}
+function bindSheet(){
+ const s=$('#sheet');
+ s.querySelectorAll('[data-cancel]').forEach(b=>b.onclick=()=>cancelSheet(b.dataset.cancel));
+ s.querySelectorAll('[data-cal]').forEach(b=>b.onclick=()=>calSim(b.dataset.rid,b.dataset.cal));
+ s.querySelectorAll('[data-act]').forEach(b=>b.onclick=()=>act(b.dataset.act,b));
+ s.querySelectorAll('[data-cita]').forEach(b=>b.onclick=()=>citaSheet(b.dataset.cita));
+ wireDL(s);
+}
+function bind(){
+ document.querySelectorAll('[data-enter]').forEach(b=>b.onclick=()=>enterRole(b.dataset.enter));
+ document.querySelectorAll('[data-social]').forEach(b=>b.onclick=()=>{snack('Iniciando con '+(b.dataset.social==='apple'?'Apple':'Google')+'… (demo)',b.dataset.social==='apple'?'apple':'mail');setTimeout(()=>enterRole('paciente'),700);});
+ document.querySelectorAll('[data-nav]').forEach(b=>b.onclick=()=>{state.screen=b.dataset.nav;render();window.scrollTo(0,0);});
+ document.querySelectorAll('[data-day]').forEach(b=>b.onclick=()=>{selDay=b.dataset.day;render();});
+ document.querySelectorAll('[data-cita]').forEach(b=>b.onclick=()=>citaSheet(b.dataset.cita));
+ document.querySelectorAll('[data-act]').forEach(b=>b.onclick=()=>act(b.dataset.act,b));
+ wireDL(document);
+}
+function act(a,el){
+ if(a==='logout'){state.role=null;state.screen=null;render();return;}
+ if(a==='reset')return resetDemo();
+ if(a==='registro')return registroSheet();
+ if(a==='copycode'){if(navigator.clipboard)navigator.clipboard.writeText(el.dataset.code);snack('Código copiado: '+el.dataset.code,'copy');return;}
+ if(a==='afiliar'){if(!$('#aff_tc').checked){snack('Acepta los términos y condiciones','close');return;}const d=affiliateByCode('p4',$('#aff_code').value);if(d){confetti();snack('¡Afiliado a '+d.nombre+'! +50 puntos','spark');render();}return;}
+ if(a==='canjear')return redeem('p4');
+ if(a==='complete')return completeCita(el.dataset.rid);
+ if(a==='enviarReceta'){const checks=[...document.querySelectorAll('.rd_serv:checked')];if(!checks.length){snack('Selecciona al menos un estudio','file');return;}
+   const est=checks.map(c=>{const id=c.dataset.id;const ops=[...document.querySelectorAll('.rd_opc[data-for="'+id+'"]:checked')].map(o=>o.parentElement.textContent.trim());const ot=(document.querySelector('.serv-otro[data-for="'+id+'"]')||{}).value;let n=c.value;if(ops.length)n+=' ('+ops.join(', ')+')';if(ot)n+=' ['+ot+']';return n;});
+   const total=window.recetaTotal();const ent=(document.querySelector('input[name=rd_ent]:checked')||{}).value;
+   const r=createCita({pacienteId:$('#rd_pac').value,doctorId:'d1',estudios:est,monto:total,obs:$('#rd_obs').value});r.entrega=ent;save();recetaConfirm(r);return;}
+ if(a==='agendarReceta')return scheduleSheet(el.dataset.rid);
+ if(a==='confirmSchedule'){const r=DB.recetarios.find(x=>x.id===el.dataset.rid);if(!r)return;const f=$('#sc_f').value;if(!f){snack('Elige fecha','cal');return;}r.fechaCita=f;r.hora=$('#sc_h').value;r.estatus='Con Cita';save();render();emailSim(r);return;}
+ if(a==='agendar'){const f=$('#ag_fecha').value;if(!f){snack('Elige una fecha','cal');return;}const r=createCita({pacienteId:'p4',doctorId:pac('p4').doctorId||'d1',estudios:[$('#ag_est').value],fechaCita:f,hora:$('#ag_hora').value,monto:850});render();emailSim(r);return;}
+ if(a==='addcita')return addCitaSheet();
+ if(a==='saveCita'){const f=$('#ac_fecha').value;if(!f){snack('Elige fecha','cal');return;}const r=createCita({pacienteId:$('#ac_pac').value,doctorId:$('#ac_doc').value,estudios:[$('#ac_est').value],fechaCita:f,hora:$('#ac_hora').value,monto:$('#ac_monto').value,obs:$('#ac_obs').value});selDay=f;render();emailSim(r);return;}
+ if(a==='addpac')return pacFormSheet();
+ if(a==='editpac')return pacFormSheet(el.dataset.id);
+ if(a==='delpac'){const p=pac(el.dataset.id);return confirmDel('pac',p.id,p.nombre);}
+ if(a==='savePac'){const n=$('#pf_n').value.trim();if(!n){snack('Escribe el nombre','user');return;}const id=el.dataset.id;
+   if(id){const p=pac(id);p.nombre=n;p.email=$('#pf_e').value;p.tel=$('#pf_t').value;p.fechaNac=$('#pf_f').value;save();snack('Paciente actualizado','check');}
+   else{const docSel=$('#pf_doc')?$('#pf_doc').value:'';if(docSel&&!$('#pf_tc').checked){snack('Acepta los términos y condiciones','close');return;}const p=addPaciente({nombre:n,email:$('#pf_e').value,tel:$('#pf_t').value,fechaNac:$('#pf_f').value});if(docSel){assignToDoctor(p.id,docSel);confetti();snack('Paciente dado de alta y afiliado','spark');}else snack('Paciente dado de alta','check');}
+   closeSheet();render();return;}
+ if(a==='adddoc')return docFormSheet();
+ if(a==='editdoc')return docFormSheet(el.dataset.id);
+ if(a==='deldoc'){const d=doc(el.dataset.id);return confirmDel('doc',d.id,d.nombre);}
+ if(a==='saveDoc'){const n=$('#df_n').value.trim(),e=$('#df_e').value.trim();if(!n||!e){snack('Nombre y correo obligatorios','user');return;}const id=el.dataset.id;
+   if(id){const d=doc(id);d.nombre=n;d.email=e;d.tel=$('#df_t').value;d.area=$('#df_a').value;d.clinica=$('#df_c').value;save();snack('Doctor actualizado','check');}
+   else{const d=addDoctor({nombre:n,email:e,tel:$('#df_t').value,area:$('#df_a').value,clinica:$('#df_c').value});snack('Doctor dado de alta · '+d.codigo,'award');}
+   closeSheet();render();return;}
+ if(a==='doDel'){if(el.dataset.kind==='pac')delPaciente(el.dataset.id);else delDoctor(el.dataset.id);closeSheet();snack('Eliminado','trash');render();return;}
+ if(a==='verarch'){snack('Abriendo visor de estudio… (demo)','eye');return;}
+ if(a==='toast'){snack(el.dataset.msg||'Listo','check');return;}
+}
+window.completeCita=completeCita;window.cancelCita=cancelCita;window.closeSheet=closeSheet;window.snack=snack;
+window.addEventListener('hashchange',function(){closeSheet();render();});
+render();
+</script>
+</body>
+</html>

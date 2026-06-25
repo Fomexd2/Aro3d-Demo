@@ -1,0 +1,122 @@
+# Aro3d Demo Configuration File
+# Configuración General de la Aplicación
+
+# Información del Proyecto
+project:
+  name: "Aro3d Demo"
+  version: "1.0.0"
+  description: "Aro3d Demo Migracion"
+  author: "Edwin Rivera"
+  license: "Apache 2.0"
+
+# Configuración de Base de Datos
+database:
+  # Opciones: sqlite, postgresql, mysql, mongodb
+  type: "sqlite"
+  host: "localhost"
+  port: 5432
+  name: "aro3d_db"
+  username: "admin"
+  password: "${DB_PASSWORD}"
+  # Conexión URL (alternativa)
+  # url: "sqlite:///./aro3d.db"
+
+# Configuración de Servidor
+server:
+  host: "0.0.0.0"
+  port: 8000
+  debug: false
+  # Tiempo de espera en segundos
+  timeout: 30
+  # CORS
+  cors:
+    enabled: true
+    origins:
+      - "http://localhost:3000"
+      - "https://example.com"
+
+# Configuración de Logging
+logging:
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "logs/aro3d.log"
+  max_size: "10MB"
+  backup_count: 5
+
+# Configuración de API
+api:
+  version: "v1"
+  base_path: "/api/v1"
+  # Rate Limiting
+  rate_limit:
+    enabled: true
+    requests_per_minute: 60
+
+# Configuración de Autenticación
+auth:
+  enabled: true
+  jwt:
+    secret: "${JWT_SECRET}"
+    algorithm: "HS256"
+    expiration_hours: 24
+  # OAuth2 (opcional)
+  oauth2:
+    enabled: false
+    google_client_id: "${GOOGLE_CLIENT_ID}"
+    google_client_secret: "${GOOGLE_CLIENT_SECRET}"
+
+# Configuración de Scraping (aro3d-scrape)
+scraping:
+  enabled: true
+  # Intervalo entre scrapes en minutos
+  interval_minutes: 60
+  # Timeout para requests en segundos
+  timeout: 30
+  # Número de reintentos
+  max_retries: 3
+  # User-Agent
+  user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+
+# Variables de Entorno
+environment:
+  NODE_ENV: "development"
+  DEBUG: "false"
+
+# Rutas de Archivos
+paths:
+  data: "./data"
+  logs: "./logs"
+  uploads: "./uploads"
+  cache: "./cache"
+
+# Configuración de Caché
+cache:
+  enabled: true
+  type: "redis"  # redis, memcached, simple
+  redis:
+    host: "localhost"
+    port: 6379
+    db: 0
+  ttl_seconds: 3600
+
+# Configuración de Email (opcional)
+email:
+  enabled: false
+  smtp:
+    server: "smtp.gmail.com"
+    port: 587
+    username: "${EMAIL_USERNAME}"
+    password: "${EMAIL_PASSWORD}"
+    from: "noreply@aro3d.com"
+
+# Configuración de Características
+features:
+  enable_analytics: true
+  enable_export: true
+  enable_notifications: false
+
+# Configuración de Desarrollo
+development:
+  reload_on_change: true
+  hot_reload: true
+  verbose_output: true

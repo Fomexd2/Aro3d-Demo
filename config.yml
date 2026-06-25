@@ -28,6 +28,8 @@ server:
   debug: false
   # Tiempo de espera en segundos
   timeout: 30
+  # Documento por defecto en la raíz (redirecciona la página principal a la demo)
+  default_document: "aro3d-scrape/demo/index.html"
   # CORS
   cors:
     enabled: true
